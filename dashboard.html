@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Space Desk — Arena</title>
 
     <!-- SUPABASE CDN -->
@@ -11,205 +11,232 @@
     <!-- SECURITY BOUNCER -->
     <script>
         const currentUser = localStorage.getItem("currentUser");
-        if (!currentUser) {
-            window.location.href = "index.html"; 
-        }
+        if (!currentUser) window.location.href = "index.html"; 
     </script>
 
     <style>
         /* =========================================================
-           RESET & ROOT (Lilac Aesthetic)
+           MOBILE-FIRST RESET & VARIABLES
         ========================================================= */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Inter, system-ui, sans-serif; }
 
         :root {
             --bg-dark: #0a0a0a;
-            --surface-color: #1c1c1e; /* Dark grey card background */
-            --border-color: #2c2c2e;
+            --surface: #1c1c1e; 
+            --border: #2c2c2e;
             --text-main: #ffffff;
             --text-muted: #8e8e93;
-            --accent: #dfc5fe; /* Lilac from reference */
-            --accent-hover: #cbb0eb;
+            --lilac: #dfc5fe; 
+            --low-priority: #3a3a3c;
         }
 
-        body {
-            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: var(--bg-dark); color: var(--text-main);
-            height: 100vh; overflow: hidden; display: flex;
-        }
+        body { background: var(--bg-dark); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
         /* =========================================================
-           SIDEBAR NAVIGATION
+           TOP HEADER & HAMBURGER MENU
         ========================================================= */
-        .sidebar {
-            width: 80px; height: 100%;
-            background: #000000;
-            border-right: 1px solid var(--border-color);
-            display: flex; flex-direction: column; align-items: center; padding: 20px 0;
-            transition: width 0.3s ease; z-index: 50;
-        }
-        .sidebar:hover { width: 220px; }
-        .brand-mark {
-            width: 32px; height: 32px; margin-bottom: 40px;
-            background: var(--text-main); border-radius: 50%;
-        }
-        .nav-item {
-            width: 100%; display: flex; align-items: center; padding: 15px 25px; cursor: pointer; color: var(--text-muted);
-            transition: all 0.2s ease; overflow: hidden; white-space: nowrap;
-        }
-        .nav-item:hover, .nav-item.active {
-            color: var(--text-main); background: #1c1c1e; border-left: 3px solid var(--accent);
-        }
-        .nav-icon { min-width: 24px; font-weight: 700; font-size: 16px; margin-right: 20px; }
-        .nav-label { font-size: 13px; font-weight: 600; letter-spacing: 0.05em; opacity: 0; transition: opacity 0.3s ease; }
-        .sidebar:hover .nav-label { opacity: 1; }
-        .logout-btn { margin-top: auto; border-left: 3px solid #ff453a; }
-        .logout-btn:hover { background: rgba(255,69,58,0.1); color: #ff453a; }
-
-        /* =========================================================
-           MAIN WORKSPACE
-        ========================================================= */
-        .workspace { flex-grow: 1; display: flex; flex-direction: column; height: 100%; position: relative; }
-
         .topbar {
-            height: 70px; width: 100%; display: flex; justify-content: space-between; align-items: center;
-            padding: 0 40px; border-bottom: 1px solid var(--border-color); background: #000000;
-        }
-        .topbar-left { font-size: 13px; font-weight: 500; color: var(--text-muted); }
-        .user-profile { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; }
-        .user-avatar {
-            width: 36px; height: 36px; border-radius: 50%; background: var(--surface-color);
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        .arena-grid {
-            flex-grow: 1; padding: 40px; overflow-y: auto;
-            max-width: 900px; margin: 0 auto; width: 100%; /* Centers the content like a mobile app view */
-        }
-
-        /* =========================================================
-           COMMAND CENTER (UI UPDATE BASED ON IMAGES)
-        ========================================================= */
-        .header-title {
-            font-size: 42px; font-weight: 700; letter-spacing: -0.04em;
-            margin-bottom: 30px; line-height: 1.1;
-        }
-
-        /* Massive Input & Submit Area */
-        .new-task-card {
-            background: var(--surface-color);
-            border-radius: 28px;
-            padding: 24px;
-            margin-bottom: 40px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
+            height: 60px; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; border-bottom: 1px solid var(--border); background: var(--bg-dark); z-index: 100;
         }
         
-        .task-input {
-            background: #2c2c2e; border: none; border-radius: 16px;
-            padding: 20px 24px; color: var(--text-main); font-size: 16px; outline: none;
-            width: 100%; font-family: inherit;
+        .menu-btn {
+            background: none; border: none; color: var(--text-main); font-size: 24px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin-left: -10px;
         }
-        .task-input::placeholder { color: #8e8e93; }
-        .task-input:focus { background: #3a3a3c; }
 
-        .add-task-btn {
-            background: var(--accent); color: #000; font-weight: 600; font-size: 16px;
-            padding: 20px; border: none; border-radius: 16px; cursor: pointer;
-            transition: background 0.2s ease, transform 0.1s ease;
-            width: 100%; /* Impossible to miss */
+        .user-avatar {
+            width: 32px; height: 32px; border-radius: 50%; background: var(--surface);
+            display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600;
         }
-        .add-task-btn:hover { background: var(--accent-hover); }
-        .add-task-btn:active { transform: scale(0.98); }
 
-        /* Rendered Task Cards */
-        .task-list { list-style: none; display: flex; flex-direction: column; gap: 16px; }
+        /* =========================================================
+           OFF-CANVAS SIDEBAR
+        ========================================================= */
+        .sidebar-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(3px);
+        }
+        .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .sidebar {
+            position: fixed; top: 0; left: 0; bottom: 0; width: 250px; background: #000;
+            border-right: 1px solid var(--border); z-index: 201;
+            transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column; padding-top: 20px;
+        }
+        .sidebar.active { transform: translateX(0); }
+
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px 30px; }
+        .brand-mark { width: 30px; height: 30px; background: var(--text-main); border-radius: 50%; }
+        .close-sidebar { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; }
+
+        .nav-item { display: flex; align-items: center; padding: 16px 20px; color: var(--text-muted); text-decoration: none; font-size: 15px; font-weight: 500; }
+        .nav-item.active { color: var(--text-main); background: var(--surface); border-left: 3px solid var(--lilac); }
+        .nav-icon { min-width: 30px; font-weight: 700; }
+        .logout-btn { margin-top: auto; border-left: 3px solid #ff453a; margin-bottom: 20px; }
+
+        /* =========================================================
+           MAIN ARENA (TARGETS LIST)
+        ========================================================= */
+        .arena { flex-grow: 1; padding: 25px 20px; overflow-y: auto; padding-bottom: 100px; }
+        
+        .page-title { font-size: 32px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 4px; }
+        .page-date { font-size: 14px; color: var(--text-muted); font-weight: 500; margin-bottom: 25px; }
+
+        .task-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
         
         .task-card {
-            background: var(--surface-color);
-            border-radius: 24px; padding: 24px;
-            display: flex; flex-direction: column; gap: 15px;
-            transition: opacity 0.3s ease; position: relative;
+            background: var(--surface); border-radius: 16px; padding: 16px;
+            display: flex; flex-direction: column; gap: 12px; position: relative;
         }
         
-        /* The most recent active task gets the Lilac background to mirror your left image */
-        .task-card.primary:not(.completed) { background: var(--accent); color: #000; }
-        .task-card.primary:not(.completed) .task-text { color: #000; }
-        .task-card.primary:not(.completed) .checkbox { border-color: #000; }
-        .task-card.primary:not(.completed) .chip { background: #ffffff; color: #000; }
-        .task-card.primary:not(.completed) .delete-btn { color: #000; }
+        /* High Priority Lilac Styling */
+        .task-card.priority-high:not(.completed) { background: var(--lilac); color: #000; }
+        .task-card.priority-high:not(.completed) .task-text { color: #000; }
+        .task-card.priority-high:not(.completed) .checkbox { border-color: #000; }
+        .task-card.priority-high:not(.completed) .target-date { color: rgba(0,0,0,0.6); }
 
         .task-card.completed { opacity: 0.5; }
 
-        .card-header { display: flex; justify-content: space-between; align-items: center; }
-        .chip {
-            background: #2c2c2e; padding: 6px 12px; border-radius: 20px;
-            font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
-        }
+        .card-body { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
         
-        .card-body { display: flex; align-items: flex-start; gap: 16px; cursor: pointer; }
-        
-        /* Custom Circular Checkbox */
         .checkbox {
-            width: 24px; height: 24px; border: 2px solid var(--text-muted); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-            margin-top: 2px;
+            width: 22px; height: 22px; border: 2px solid var(--text-muted); border-radius: 6px;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;
         }
-        .task-card.completed .checkbox { background: var(--accent); border-color: var(--accent); }
+        .task-card.completed .checkbox { background: var(--lilac); border-color: var(--lilac); }
         .task-card.completed .checkbox::after { content: "✓"; color: #000; font-size: 14px; font-weight: bold; }
         
-        .task-text { font-size: 18px; font-weight: 500; line-height: 1.4; transition: color 0.2s ease; }
+        .task-text { font-size: 16px; font-weight: 500; line-height: 1.4; }
         .task-card.completed .task-text { text-decoration: line-through; color: var(--text-muted); }
 
-        .delete-btn {
-            background: transparent; border: none; font-size: 20px; cursor: pointer;
-            color: var(--text-muted); padding: 5px; opacity: 0.4; transition: opacity 0.2s ease;
-        }
-        .delete-btn:hover { opacity: 1; color: #ff453a !important; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; padding-left: 34px; }
+        .target-date { font-size: 12px; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 4px;}
         
-        #loading-text { color: var(--text-muted); font-size: 14px; text-align: center; margin-top: 20px; }
+        .delete-btn { background: transparent; border: none; font-size: 18px; color: var(--text-muted); padding: 5px; opacity: 0.5; cursor: pointer; }
 
+        /* =========================================================
+           FLOATING ACTION BUTTON (+) & MODAL
+        ========================================================= */
+        .fab {
+            position: fixed; bottom: 30px; right: 25px; width: 60px; height: 60px;
+            background: var(--lilac); color: #000; border: none; border-radius: 50%;
+            font-size: 32px; font-weight: 300; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 24px rgba(223, 197, 254, 0.3); z-index: 100; cursor: pointer;
+        }
+
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300;
+            display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .modal-content {
+            background: var(--surface); width: 100%; border-radius: 24px 24px 0 0;
+            padding: 24px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 18px; font-weight: 600; }
+        .close-modal { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; }
+
+        .field-group { margin-bottom: 20px; }
+        .field-label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;}
+        
+        .target-input {
+            width: 100%; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 12px;
+            padding: 16px; color: var(--text-main); font-size: 16px; outline: none;
+        }
+        
+        /* Native Date Picker Styling */
+        .date-input {
+            width: 100%; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 12px;
+            padding: 14px 16px; color: var(--text-main); font-size: 15px; outline: none; color-scheme: dark;
+        }
+
+        /* Priority Toggle */
+        .priority-toggle { display: flex; gap: 10px; }
+        .priority-btn {
+            flex: 1; padding: 14px; border: 1px solid var(--border); border-radius: 12px;
+            background: var(--bg-dark); color: var(--text-muted); font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .priority-btn.active.high { background: var(--lilac); color: #000; border-color: var(--lilac); }
+        .priority-btn.active.low { background: var(--text-main); color: #000; border-color: var(--text-main); }
+
+        .save-btn {
+            width: 100%; background: var(--lilac); color: #000; border: none; border-radius: 16px;
+            padding: 18px; font-size: 16px; font-weight: 700; margin-top: 10px; cursor: pointer;
+        }
+
+        #loading-text { font-size: 13px; color: var(--text-muted); text-align: center; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-    <nav class="sidebar">
-        <div class="brand-mark"></div>
-        <div class="nav-item active"><span class="nav-icon">≡</span><span class="nav-label">Command</span></div>
-        <div class="nav-item"><span class="nav-icon">◱</span><span class="nav-label">Brainstorm</span></div>
-        <div class="nav-item"><span class="nav-icon">◳</span><span class="nav-label">Engine</span></div>
-        <div class="nav-item logout-btn" onclick="logout()"><span class="nav-icon">✕</span><span class="nav-label">End Session</span></div>
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        <div class="user-avatar" id="avatar-initial">O</div>
+    </header>
+
+    <!-- SIDEBAR & OVERLAY -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="brand-mark"></div>
+            <button class="close-sidebar" onclick="toggleSidebar()">✕</button>
+        </div>
+        <div class="nav-item active"><span class="nav-icon">≡</span>Command Center</div>
+        <div class="nav-item"><span class="nav-icon">◱</span>Brainstorm Arena</div>
+        <div class="nav-item"><span class="nav-icon">◳</span>CSAT Engine</div>
+        <div class="nav-item logout-btn" onclick="logout()"><span class="nav-icon">✕</span>End Session</div>
     </nav>
 
-    <main class="workspace">
-        <header class="topbar">
-            <div class="topbar-left" id="live-date">Loading date...</div>
-            <div class="user-profile">
-                <span id="display-name">Operative</span>
-                <div class="user-avatar" id="avatar-initial">O</div>
-            </div>
-        </header>
+    <!-- MAIN ARENA -->
+    <main class="arena">
+        <h1 class="page-title">TARGETS</h1>
+        <p class="page-date" id="display-date">Loading date...</p>
 
-        <div class="arena-grid">
-            
-            <div class="header-title">Simplify<br>your targets 🎯</div>
-
-            <!-- MASSIVE INPUT AREA -->
-            <div class="new-task-card">
-                <input type="text" id="new-task-input" class="task-input" placeholder="What is the next objective?" onkeypress="handleKeyPress(event)">
-                <button class="add-task-btn" onclick="addTask()" id="add-btn">Add Target</button>
-            </div>
-
-            <div id="loading-text">Syncing with database...</div>
-            
-            <!-- RENDERED TASK CARDS -->
-            <ul class="task-list" id="task-list">
-                <!-- Tasks inject here -->
-            </ul>
-
-        </div>
+        <div id="loading-text">Syncing data...</div>
+        <ul class="task-list" id="task-list">
+            <!-- Targets inject here -->
+        </ul>
     </main>
+
+    <!-- FLOATING ACTION BUTTON -->
+    <button class="fab" onclick="openModal()">+</button>
+
+    <!-- NEW TARGET MODAL -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>New Target</h3>
+                <button class="close-modal" onclick="closeModal()">✕</button>
+            </div>
+
+            <div class="field-group">
+                <input type="text" id="target-name" class="target-input" placeholder="e.g., Complete CSAT PYQs">
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Priority</label>
+                <div class="priority-toggle">
+                    <button class="priority-btn active high" id="btn-high" onclick="setPriority('High')">High</button>
+                    <button class="priority-btn" id="btn-low" onclick="setPriority('Low')">Low</button>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Date</label>
+                <input type="date" id="target-date" class="date-input">
+            </div>
+
+            <button class="save-btn" id="save-btn" onclick="saveTarget()">Lock Target</button>
+        </div>
+    </div>
 
     <script>
         /* =========================================================
@@ -220,18 +247,22 @@
         const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         /* =========================================================
-           2. IDENTITY & UI SETUP
+           2. UI INITIALIZATION & SIDEBAR
         ========================================================= */
         const userName = localStorage.getItem("currentUser") || "Operative";
-        document.getElementById("display-name").innerText = userName;
         document.getElementById("avatar-initial").innerText = userName.charAt(0).toUpperCase();
 
-        function updateDate() {
+        function setTodayDate() {
             const today = new Date();
-            const options = { timeZone: 'Asia/Kolkata', weekday: 'long', month: 'short', day: 'numeric' };
-            document.getElementById("live-date").innerText = today.toLocaleDateString('en-IN', options).toUpperCase();
+            const options = { timeZone: 'Asia/Kolkata', weekday: 'long', month: 'long', day: 'numeric' };
+            document.getElementById("display-date").innerText = today.toLocaleDateString('en-IN', options);
         }
-        updateDate();
+        setTodayDate();
+
+        function toggleSidebar() {
+            document.getElementById("sidebar").classList.toggle("active");
+            document.getElementById("sidebar-overlay").classList.toggle("active");
+        }
 
         function logout() {
             localStorage.removeItem("currentUser");
@@ -239,11 +270,46 @@
         }
 
         /* =========================================================
-           3. COMMAND CENTER LOGIC
+           3. MODAL LOGIC (ADD TARGET)
+        ========================================================= */
+        let currentPriority = "High";
+
+        function openModal() {
+            document.getElementById("modal-overlay").classList.add("active");
+            document.getElementById("target-name").value = "";
+            setPriority("High");
+            
+            // Set default date to today in YYYY-MM-DD format for the input
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            document.getElementById("target-date").value = `${yyyy}-${mm}-${dd}`;
+        }
+
+        function closeModal() {
+            document.getElementById("modal-overlay").classList.remove("active");
+        }
+
+        function setPriority(level) {
+            currentPriority = level;
+            const btnHigh = document.getElementById("btn-high");
+            const btnLow = document.getElementById("btn-low");
+            
+            if (level === "High") {
+                btnHigh.classList.add("active", "high");
+                btnLow.classList.remove("active", "low");
+            } else {
+                btnLow.classList.add("active", "low");
+                btnHigh.classList.remove("active", "high");
+            }
+        }
+
+        /* =========================================================
+           4. DATABASE CRUD OPERATIONS
         ========================================================= */
         const taskList = document.getElementById("task-list");
         const loadingText = document.getElementById("loading-text");
-        const taskInput = document.getElementById("new-task-input");
 
         async function fetchTasks() {
             loadingText.style.display = "block";
@@ -252,60 +318,67 @@
                 .from('tasks')
                 .select('*')
                 .eq('student_name', userName) 
+                .order('is_completed', { ascending: true }) // Active first
                 .order('created_at', { ascending: false });
 
             loadingText.style.display = "none";
             if (!error) renderTasks(data);
         }
 
+        function formatDisplayDate(dateString) {
+            if (!dateString) return "";
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+        }
+
         function renderTasks(tasks) {
             taskList.innerHTML = ""; 
             if(tasks.length === 0) return;
 
-            let isFirstActiveFound = false;
-
             tasks.forEach(task => {
                 const li = document.createElement("li");
                 
-                // Determine if this is the "primary" card (first non-completed task) to give it the Lilac background
-                let primaryClass = "";
-                if (!task.is_completed && !isFirstActiveFound) {
-                    primaryClass = "primary";
-                    isFirstActiveFound = true;
-                }
-
-                li.className = `task-card ${task.is_completed ? 'completed' : ''} ${primaryClass}`;
+                // Determine styling based on priority and completion
+                const priorityClass = task.priority === "High" ? "priority-high" : "priority-low";
+                li.className = `task-card ${task.is_completed ? 'completed' : ''} ${priorityClass}`;
                 
-                // Fake chip for aesthetic matching the image
-                const chipText = task.is_completed ? "Archived" : "High Priority";
+                const formattedDate = formatDisplayDate(task.target_date);
 
                 li.innerHTML = `
-                    <div class="card-header">
-                        <div class="chip">${chipText}</div>
-                        <button class="delete-btn" onclick="deleteTask('${task.id}')">✕</button>
-                    </div>
                     <div class="card-body" onclick="toggleTask('${task.id}', ${task.is_completed})">
                         <div class="checkbox"></div>
                         <span class="task-text">${task.task_text}</span>
+                    </div>
+                    <div class="card-footer">
+                        <span class="target-date">📅 ${formattedDate || "No Date"}</span>
+                        <button class="delete-btn" onclick="deleteTask('${task.id}')">✕</button>
                     </div>
                 `;
                 taskList.appendChild(li);
             });
         }
 
-        async function addTask() {
-            const text = taskInput.value.trim();
+        async function saveTarget() {
+            const text = document.getElementById("target-name").value.trim();
+            const dateVal = document.getElementById("target-date").value;
             if (!text) return;
 
-            const btn = document.getElementById("add-btn");
-            btn.innerText = "Locking..."; btn.disabled = true;
+            const btn = document.getElementById("save-btn");
+            btn.innerText = "Saving..."; btn.disabled = true;
 
-            const { error } = await db.from('tasks').insert([{ student_name: userName, task_text: text }]);
+            const { error } = await db.from('tasks').insert([{ 
+                student_name: userName, 
+                task_text: text,
+                priority: currentPriority,
+                target_date: dateVal || null
+            }]);
 
-            btn.innerText = "Add Target"; btn.disabled = false;
-            taskInput.value = ""; 
-
-            if (!error) fetchTasks();
+            btn.innerText = "Lock Target"; btn.disabled = false;
+            
+            if (!error) {
+                closeModal();
+                fetchTasks();
+            }
         }
 
         async function toggleTask(id, currentStatus) {
@@ -318,10 +391,7 @@
             if (!error) fetchTasks();
         }
 
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') addTask();
-        }
-
+        // INITIALIZE
         fetchTasks();
     </script>
 </body>
