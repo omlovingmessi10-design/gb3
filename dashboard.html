@@ -816,7 +816,8 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
 /* ================= supabase setup ================= */
 const SUPABASE_URL = 'https://qhtgcvubyaopldxmisas.supabase.co/';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFodGdjdnVieWFvcGxkeG1pc2FzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNTIzNTQsImV4cCI6MjEwMjcyODM1NH0.p2IfhXkMhGNd1RkPkLLLqtIb9bcCBrVp_3WPcxn0eTg';
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Renamed to 'db' to avoid conflict with the Supabase CDN script
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ================= data ================= */
 const CATEGORIES = [
@@ -874,7 +875,7 @@ let tasks = [
 let tasks = [];
 
 async function loadTasks() {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('tasks')
     .select('*')
     .order('id', { ascending: true });
@@ -1054,7 +1055,7 @@ async function toggleDone(id){
   renderTasks(); 
   renderTabStrip();
 
-  await supabase
+  await db
     .from('tasks')
     .update({ done: t.done, completed_at: t.completedAt })
     .eq('id', id);
@@ -1066,7 +1067,7 @@ async function deleteTask(id){
   renderTasks(); 
   renderTabStrip(); 
 
-  await supabase
+  await db
     .from('tasks')
     .delete()
     .eq('id', id);
@@ -1135,7 +1136,7 @@ async function fileTask(){
     themes: activeCat === 'CA' ? [...selectedThemes] : []
   };
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('tasks')
     .insert([newTask])
     .select();
