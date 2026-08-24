@@ -206,7 +206,7 @@ button{font-family:inherit; cursor:pointer;}
 .tab-strip{
   display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; margin-bottom:16px;
   position:relative; z-index:1;
-  scrollbar-width:none;
+  scroll-width:none;
 }
 .tab-strip::-webkit-scrollbar{display:none;}
 .tab-chip{
@@ -811,7 +811,13 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+/* ================= supabase setup ================= */
+const SUPABASE_URL = 'https://qhtgcvubyaopldxmisas.supabase.co/';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFodGdjdnVieWFvcGxkeG1pc2FzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNTIzNTQsImV4cCI6MjEwMjcyODM1NH0.p2IfhXkMhGNd1RkPkLLLqtIb9bcCBrVp_3WPcxn0eTg';
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 /* ================= data ================= */
 const CATEGORIES = [
   {id:'GS', label:'GS', icon:'book'},
@@ -854,6 +860,8 @@ const THEMES = ["Polity & Constitution","Indian Economy","Physical Geography","I
 function todayKey(){ const d=new Date(); return d.toISOString().slice(0,10); }
 function offsetDateKey(days){ const d=new Date(); d.setDate(d.getDate()+days); return d.toISOString().slice(0,10); }
 
+/*
+// Original mock tasks replaced with dynamic fetching from Supabase
 let tasks = [
   {id:1, title:"Laxmikanth Ch.9 — Emergency provisions", cat:"GS", done:false},
   {id:2, title:"PYQ set — Mughal administration", cat:"Optional", done:true, completedAt:todayKey()},
@@ -861,6 +869,34 @@ let tasks = [
   {id:4, title:"CSAT Percentage — Level 1 set", cat:"CSAT", done:false},
   {id:5, title:"Revise: Fundamental Rights case laws", cat:"Revision", done:false},
 ];
+*/
+
+let tasks = [];
+
+async function loadTasks() {
+  const { data, error } = await supabase
+    .from('tasks')
+    .select('*')
+    .order('id', { ascending: true });
+
+  if (error) {
+    console.error("Error loading tasks:", error);
+    return;
+  }
+  
+  // Map Supabase snake_case columns back to your camelCase frontend logic
+  tasks = data.map(t => ({
+    id: t.id,
+    title: t.title,
+    cat: t.cat,
+    done: t.done,
+    completedAt: t.completed_at,
+    themes: t.themes || []
+  }));
+
+  render();
+}
+
 let nextId = 6;
 let activeCat = "GS";
 
@@ -1010,13 +1046,32 @@ function renderTasks(){
 }
 document.addEventListener('click', ()=>{ if(openMenuId!==null){ openMenuId=null; renderTasks(); } });
 
-function toggleDone(id){
+async function toggleDone(id){
   const t=tasks.find(t=>t.id===id);
   t.done=!t.done;
   t.completedAt = t.done ? todayKey() : null;
-  renderTasks(); renderTabStrip();
+
+  renderTasks(); 
+  renderTabStrip();
+
+  await supabase
+    .from('tasks')
+    .update({ done: t.done, completed_at: t.completedAt })
+    .eq('id', id);
 }
-function deleteTask(id){ tasks = tasks.filter(t=>t.id!==id); openMenuId=null; renderTasks(); renderTabStrip(); }
+
+async function deleteTask(id){ 
+  tasks = tasks.filter(t=>t.id!==id); 
+  openMenuId=null; 
+  renderTasks(); 
+  renderTabStrip(); 
+
+  await supabase
+    .from('tasks')
+    .delete()
+    .eq('id', id);
+}
+
 function rescheduleTask(id){
   const t=tasks.find(t=>t.id===id);
   t.rescheduled = true;
@@ -1072,10 +1127,34 @@ document.getElementById('openAdd').onclick = ()=>{
 document.getElementById('closeAdd').onclick = ()=> overlay.classList.remove('open');
 overlay.addEventListener('click', (e)=>{ if(e.target===overlay) overlay.classList.remove('open'); });
 
-function fileTask(){
-  const task = {id:nextId++, title:pendingTitle, cat:activeCat, done:false};
-  if(activeCat==='CA'){ task.themes = [...selectedThemes]; }
-  tasks.push(task);
+async function fileTask(){
+  const newTask = { 
+    title: pendingTitle, 
+    cat: activeCat, 
+    done: false,
+    themes: activeCat === 'CA' ? [...selectedThemes] : []
+  };
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .insert([newTask])
+    .select();
+
+  if (error) {
+    flashToast("Error saving task.");
+    return;
+  }
+
+  const savedTask = data[0];
+  tasks.push({
+    id: savedTask.id,
+    title: savedTask.title,
+    cat: savedTask.cat,
+    done: savedTask.done,
+    themes: savedTask.themes,
+    fromPlan: false // keep compatibility with UI
+  });
+
   overlay.classList.remove('open');
   render();
   if(activeCat==='CA'){ renderObsidianGraph(); }
@@ -2152,17 +2231,17 @@ function updateCountdown(){
 setInterval(updateCountdown, 30000);
 
 /* ================= master render ================= */
-function render(){
-  renderNav();
-  renderTabStrip();
-  renderTasks();
-}
 render();
 renderModules();
 updateCountdown();
 applyDarkMode();
 updateFsIcon();
-pullTodaysPlanIntoDaybook();
+
+// Load Supabase tasks dynamically (and push today's planned tasks once loaded)
+loadTasks().then(() => {
+  pullTodaysPlanIntoDaybook();
+});
+
 </script>
 </body>
 </html>
