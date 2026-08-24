@@ -125,7 +125,7 @@ body {
 
 .topbar {
     position: absolute; top: 0; left: 0; right: 0; height: 92px;
-    display: flex; align-items: center; justify-content: flex-start; /* Removed space-between */
+    display: flex; align-items: center; justify-content: flex-start;
     padding: 0 7vw; border-bottom: 1px solid rgba(255,255,255,0.09);
     background: linear-gradient(to right, rgba(0,0,0,0.97), rgba(24,24,24,0.6), rgba(0,0,0,0.97));
     z-index: 100; overflow: visible;
@@ -137,7 +137,7 @@ body {
 .gov-flow {
     position: absolute; left: 0; right: 0; top: 0; bottom: 0;
     display: flex; align-items: center; overflow: hidden; pointer-events: none;
-    padding-left: 20px; padding-right: 250px; /* Leaves space for the top right controls */
+    padding-left: 20px; padding-right: 250px;
     mask-image: linear-gradient(to right, transparent 0%, #000 5%, #000 85%, transparent 100%);
     -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 5%, #000 85%, transparent 100%);
 }
@@ -155,14 +155,14 @@ body {
 .gov-item.vision { color: rgba(245, 245, 242, 0.68); font-weight: 600; }
 
 /* =========================================================
-   TOP RIGHT CONTROLS (BUTTON + NIMBU MIRCHI SIDE-BY-SIDE)
+   TOP RIGHT CONTROLS
 ========================================================= */
 .top-right-controls {
     position: absolute;
     right: 7vw;
     top: 22px;
     display: flex;
-    flex-direction: row; /* Aligns them horizontally */
+    flex-direction: row;
     align-items: flex-start;
     gap: 25px;
     z-index: 110;
@@ -173,14 +173,14 @@ body {
     background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
     color: var(--white); font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
     cursor: pointer; backdrop-filter: blur(10px); transition: all 0.3s ease;
-    margin-top: 5px; /* Centers button visually with the hanging totem */
+    margin-top: 5px;
 }
 .auth-trigger-btn:hover { background: rgba(255,255,255,0.15); box-shadow: 0 0 15px rgba(249,115,22,0.3); border-color: var(--magic-glow); }
 
 /* NIMBU MIRCHI */
 .totem-wrap { 
     position: relative;
-    top: -22px; /* Pulls it up so the string hangs from the absolute top */
+    top: -22px;
     width: 34px; height: 250px; pointer-events: none; 
 }
 .totem-string {
@@ -416,11 +416,11 @@ button.auth-button:disabled { opacity: 0.65; cursor: not-allowed; }
     <div id="login-view">
         <div class="auth-label">Secure Student Access</div>
         <h2>Welcome back.</h2>
-        <p class="auth-description">Enter your seat number and PIN to continue your preparation.</p>
+        <p class="auth-description">Enter your mobile number and PIN to continue your preparation.</p>
 
         <div class="field">
-            <label class="field-label">Seat Number</label>
-            <input type="text" id="login-seat" placeholder="Enter seat number">
+            <label class="field-label">Mobile Number</label>
+            <input type="tel" id="login-mobile" placeholder="Enter mobile number" maxlength="10" inputmode="numeric">
         </div>
         <div class="field">
             <label class="field-label">4-Digit PIN</label>
@@ -438,8 +438,8 @@ button.auth-button:disabled { opacity: 0.65; cursor: not-allowed; }
         <p class="auth-description">Create your workspace. This data is cryptographically secured.</p>
 
         <div class="field">
-            <label class="field-label">Seat Number</label>
-            <input type="text" id="reg-seat" placeholder="Choose a Seat Number (e.g. S-101)">
+            <label class="field-label">Mobile Number</label>
+            <input type="tel" id="reg-mobile" placeholder="Enter 10-digit mobile number" maxlength="10" inputmode="numeric">
         </div>
         <div class="field">
             <label class="field-label">Your Name</label>
@@ -449,7 +449,7 @@ button.auth-button:disabled { opacity: 0.65; cursor: not-allowed; }
             <label class="field-label">Create 4-Digit PIN</label>
             <input type="password" id="reg-pin" placeholder="Create PIN" maxlength="4" inputmode="numeric">
         </div>
-        <button class="auth-button" id="reg-btn" onclick="processRegister()">Register Seat</button>
+        <button class="auth-button" id="reg-btn" onclick="processRegister()">Register Account</button>
         <div class="error-message" id="reg-error"></div>
         <div class="success-message" id="reg-success"></div>
         <div class="auth-toggle-link" onclick="switchAuthView('login')">Already have an account? Try Login</div>
@@ -466,7 +466,7 @@ button.auth-button:disabled { opacity: 0.65; cursor: not-allowed; }
 
 <script>
 /* =========================================================
-   SUPABASE INITIALIZATION (REPLACE WITH YOUR KEYS!)
+   SUPABASE INITIALIZATION
 ========================================================= */
 const SUPABASE_URL = 'https://qhtgcvubyaopldxmisas.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFodGdjdnVieWFvcGxkeG1pc2FzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNTIzNTQsImV4cCI6MjEwMjcyODM1NH0.p2IfhXkMhGNd1RkPkLLLqtIb9bcCBrVp_3WPcxn0eTg';
@@ -496,7 +496,7 @@ function switchAuthView(view) {
    DATABASE: REGISTER FLOW
 ========================================================= */
 async function processRegister() {
-    const seat = document.getElementById("reg-seat").value.trim();
+    const mobile = document.getElementById("reg-mobile").value.trim();
     const name = document.getElementById("reg-name").value.trim();
     const pin = document.getElementById("reg-pin").value.trim();
     const btn = document.getElementById("reg-btn");
@@ -506,8 +506,12 @@ async function processRegister() {
     errorDiv.style.display = "none";
     successDiv.style.display = "none";
 
-    if (!seat || !name || !pin) {
+    if (!mobile || !name || !pin) {
         errorDiv.innerText = "All fields are required.";
+        errorDiv.style.display = "block"; return;
+    }
+    if (mobile.length !== 10 || isNaN(mobile)) {
+        errorDiv.innerText = "Please enter a valid 10-digit mobile number.";
         errorDiv.style.display = "block"; return;
     }
     if (pin.length !== 4 || isNaN(pin)) {
@@ -518,19 +522,20 @@ async function processRegister() {
     btn.innerText = "Registering..."; btn.disabled = true;
 
     try {
-        const { data, error } = await db.from('users').insert([
-            { seat_number: seat, student_name: name, pin: pin }
+        // Insert into the 'profiles' table using Mobile Number as the ID
+        const { data, error } = await db.from('profiles').insert([
+            { id: mobile, mobile: mobile, name: name, pin: pin }
         ]);
 
         if (error) {
-            if(error.code === '23505') errorDiv.innerText = "Seat Number is already taken.";
+            if(error.code === '23505') errorDiv.innerText = "Mobile number is already registered.";
             else errorDiv.innerText = "Registration failed. Try again.";
             errorDiv.style.display = "block";
         } else {
             successDiv.innerText = "Registration successful! You can now log in.";
             successDiv.style.display = "block";
             
-            document.getElementById("reg-seat").value = "";
+            document.getElementById("reg-mobile").value = "";
             document.getElementById("reg-name").value = "";
             document.getElementById("reg-pin").value = "";
             
@@ -541,7 +546,7 @@ async function processRegister() {
         errorDiv.style.display = "block";
     }
 
-    btn.innerText = "Register Seat"; btn.disabled = false;
+    btn.innerText = "Register Account"; btn.disabled = false;
 }
 
 
@@ -549,32 +554,37 @@ async function processRegister() {
    DATABASE: LOGIN FLOW
 ========================================================= */
 async function processLogin() {
-    const seat = document.getElementById("login-seat").value.trim();
+    const mobile = document.getElementById("login-mobile").value.trim();
     const pin = document.getElementById("login-pin").value.trim();
     const btn = document.getElementById("login-btn");
     const errorDiv = document.getElementById("login-error");
 
     errorDiv.style.display = "none";
 
-    if (!seat || !pin) {
-        errorDiv.innerText = "Please enter your seat number and PIN.";
+    if (!mobile || !pin) {
+        errorDiv.innerText = "Please enter your mobile number and PIN.";
         errorDiv.style.display = "block"; return;
     }
 
     btn.innerText = "Verifying..."; btn.disabled = true;
 
     try {
-        const { data, error } = await db.from('users')
+        // Validate against the 'profiles' table using mobile as ID
+        const { data, error } = await db.from('profiles')
             .select('*')
-            .eq('seat_number', seat)
+            .eq('id', mobile)
             .eq('pin', pin)
             .single();
 
         if (error || !data) {
-            errorDiv.innerText = "Invalid seat number or PIN.";
+            errorDiv.innerText = "Invalid mobile number or PIN.";
             errorDiv.style.display = "block";
         } else {
-            localStorage.setItem("currentUser", data.student_name);
+            // Store credentials exactly how the dashboard expects them
+            localStorage.setItem("gb3_user_id", data.id);
+            localStorage.setItem("gb3_supa_url", SUPABASE_URL);
+            localStorage.setItem("gb3_supa_key", SUPABASE_KEY);
+            
             window.location.href = "dashboard.html";
         }
     } catch (err) {
@@ -670,8 +680,8 @@ setInterval(changeQuote, 8000);
 document.addEventListener("keydown", function(event) {
     if (event.key !== "Enter") return;
     const active = document.activeElement;
-    if (active && (active.id === "login-seat" || active.id === "login-pin")) processLogin();
-    if (active && (active.id === "reg-seat" || active.id === "reg-name" || active.id === "reg-pin")) processRegister();
+    if (active && (active.id === "login-mobile" || active.id === "login-pin")) processLogin();
+    if (active && (active.id === "reg-mobile" || active.id === "reg-name" || active.id === "reg-pin")) processRegister();
 });
 </script>
 
