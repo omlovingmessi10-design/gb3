@@ -912,7 +912,12 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
 let supa = null;
 let SUPA_URL = localStorage.getItem('gb3_supa_url') || '';
 let SUPA_KEY = localStorage.getItem('gb3_supa_key') || '';
-let currentUserId = localStorage.getItem('gb3_user_id') || 'test-user-1'; 
+let currentUserId = localStorage.getItem('gb3_user_id');
+
+// If no user is logged in, kick them back to the login page
+if (!currentUserId) {
+    window.location.href = "index.html"; 
+} 
 
 function initSupabase(){
   if(SUPA_URL && SUPA_KEY && window.supabase){
@@ -1049,8 +1054,14 @@ function offsetDateKey(days){ const d=new Date(); d.setDate(d.getDate()+days); r
 
 let tasks = [];
 async function loadTasks() {
-  if (!supa) return;
-  const { data, error } = await supa.from('tasks').select('*').order('id', { ascending: true });
+  if (!supa || !currentUserId) return;
+  
+  // The .eq() part acts as the filter
+  const { data, error } = await supa.from('tasks')
+    .select('*')
+    .eq('user_id', currentUserId) 
+    .order('id', { ascending: true });
+    
   if (!error && data) {
     tasks = data.map(t => ({
       id: t.id, title: t.title, cat: t.cat, done: t.done,
@@ -1302,18 +1313,24 @@ document.getElementById('closeAdd').onclick = ()=> overlay.classList.remove('ope
 overlay.addEventListener('click', (e)=>{ if(e.target===overlay) overlay.classList.remove('open'); });
 
 async function fileTask(){
-  const newTask = { title: pendingTitle, cat: activeCat, done: false, themes: activeCat === 'CA' ? [...selectedThemes] : [] };
+  // user_id is added here
+  const newTask = { user_id: currentUserId, title: pendingTitle, cat: activeCat, done: false, themes: activeCat === 'CA' ? [...selectedThemes] : [] };
   
   if (supa) {
     const { data, error } = await supa.from('tasks').insert([newTask]).select();
-    if (!error && data) {
+    if (!error && data && data.length > 0) {
       const savedTask = data[0];
       tasks.push({ id: savedTask.id, title: savedTask.title, cat: savedTask.cat, done: savedTask.done, themes: savedTask.themes, fromPlan: false });
     }
   } else {
-    // Fallback if Supabase isn't connected yet
     tasks.push({id:nextId++, title:pendingTitle, cat:activeCat, done:false, themes: activeCat === 'CA' ? [...selectedThemes] : [], fromPlan: false});
   }
+
+  overlay.classList.remove('open');
+  render();
+  if(activeCat==='CA'){ renderObsidianGraph(); }
+  flashToast("Filed to today's Daybook.");
+}
 
   overlay.classList.remove('open');
   render();
