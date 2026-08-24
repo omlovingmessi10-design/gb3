@@ -33,7 +33,7 @@
   --radius-l:20px;
   --shadow-card:0 1px 2px rgba(27,42,68,.06), 0 8px 24px -12px rgba(27,42,68,.18);
   --font-display:'Fraunces', serif;
-  --font-body:'IBM Plex Sans', sans-serif;
+  --font-body:'Inter', sans-serif;
   --font-mono:'IBM Plex Mono', monospace;
 }
 html.dark{
@@ -127,7 +127,7 @@ button{font-family:inherit; cursor:pointer;}
 .rail-divider{height:1px; background:#ffffff1c; margin:8px 4px;}
 .rail-bottom{display:flex; align-items:center; gap:10px; width:100%; background:none; border:none; padding:10px 8px; border-radius:var(--radius-s); text-align:left;}
 .rail-bottom:hover{background:#ffffff10;}
-.rail-avatar{width:34px; height:34px; border-radius:50%; object-fit:cover; border:1.5px solid #eee7d366; flex-shrink:0;}
+.rail-avatar{width:34px; height:34px; border-radius:50%; object-fit:cover; border:1.5px solid #eee7d366; flex-shrink:0; display:flex; align-items:center; justify-content:center; background:#ffffff14; font-size:18px;}
 .rail-bottom-text{display:flex; flex-direction:column; line-height:1.25;}
 .rail-bottom-text b{font-size:12.5px; color:#eee7d3; font-weight:600;}
 .rail-bottom-text span{font-size:10.5px; color:#a8ade0;}
@@ -159,7 +159,8 @@ button{font-family:inherit; cursor:pointer;}
 .topbar-left{display:flex; align-items:center; gap:12px; min-width:0;}
 .profile{display:flex; align-items:center; gap:12px; background:none; border:none; text-align:left; min-width:0; border-radius:var(--radius-s); padding:4px; margin:-4px;}
 .profile:hover{background:var(--surface-2);}
-.profile img{width:44px; height:44px; border-radius:50%; object-fit:cover; border:2px solid var(--surface); box-shadow:0 0 0 2px var(--rule-strong);}
+.profile img, .profile .avatar-badge{width:44px; height:44px; border-radius:50%; object-fit:cover; border:2px solid var(--surface); box-shadow:0 0 0 2px var(--rule-strong);}
+.avatar-badge{display:flex; align-items:center; justify-content:center; background:var(--surface-2); flex-shrink:0; font-size:22px; line-height:1;}
 .profile-name{font-weight:600; font-size:15px; line-height:1.2;}
 .profile-sub{font-size:12px; color:var(--ink-soft); font-family:var(--font-mono);}
 .top-actions{display:flex; align-items:center; gap:8px;}
@@ -170,6 +171,11 @@ button{font-family:inherit; cursor:pointer;}
 }
 .icon-btn svg{width:17px; height:17px;}
 .icon-btn .dot{position:absolute; top:9px; right:10px; width:6px; height:6px; border-radius:50%; background:var(--seal);}
+.hamburger-btn{
+  width:40px; height:40px; border-radius:0; border:none; background:none;
+  display:flex; align-items:center; justify-content:center; color:var(--ink); flex-shrink:0;
+}
+.hamburger-btn svg{width:22px; height:22px;}
 
 /* ===== daybook hero ===== */
 .daybook{
@@ -206,7 +212,7 @@ button{font-family:inherit; cursor:pointer;}
 .tab-strip{
   display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; margin-bottom:16px;
   position:relative; z-index:1;
-  scroll-width:none;
+  scrollbar-width:none;
 }
 .tab-strip::-webkit-scrollbar{display:none;}
 .tab-chip{
@@ -251,7 +257,13 @@ button{font-family:inherit; cursor:pointer;}
 }
 .task.done .task-title{text-decoration:line-through; color:var(--ink-faint);}
 .task-meta{display:flex; align-items:center; gap:8px; flex-wrap:nowrap;}
-.task-actions{display:flex; align-items:center; gap:4px; flex-shrink:0;}
+.task-actions{display:flex; align-items:center; gap:2px; flex-shrink:0;}
+.trash-btn{
+  width:30px; height:30px; border-radius:50%; border:none; background:transparent;
+  display:flex; align-items:center; justify-content:center; color:var(--ink-faint);
+}
+.trash-btn:hover{background:var(--seal-soft); color:var(--seal);}
+.trash-btn svg{width:15px; height:15px;}
 .menu-wrap{position:relative;}
 .dots{
   width:30px; height:30px; border-radius:50%; border:none; background:transparent;
@@ -547,6 +559,51 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
 @media (min-width:1220px){ .modal.modal-wide{padding:40px 56px 60px;} }
 .modal.modal-wide .modal-close{position:fixed; top:20px; right:20px;}
 .modal.modal-wide > *:not(.modal-close){max-width:1180px; width:100%; margin-left:auto; margin-right:auto;}
+
+/* ===== drill navigation (CSAT engine / Pre PYQs / Mains PYQs) ===== */
+.crumb{display:flex; align-items:center; flex-wrap:wrap; gap:4px; font-size:11.5px; font-family:var(--font-mono); color:var(--ink-soft); margin-bottom:14px;}
+.crumb button{background:none; border:none; color:var(--navy-bright); font-family:var(--font-mono); font-size:11.5px; font-weight:600;}
+.crumb span.sep{opacity:.5;}
+.drill-grid{display:grid; grid-template-columns:1fr; gap:10px;}
+@media (min-width:560px){ .drill-grid{grid-template-columns:1fr 1fr;} }
+@media (min-width:900px){ .drill-grid{grid-template-columns:1fr 1fr 1fr;} }
+.drill-card{
+  border:1px solid var(--rule); border-radius:var(--radius-m); background:var(--surface);
+  padding:14px; text-align:left; display:flex; flex-direction:column; gap:8px;
+  box-shadow:var(--shadow-card); transition:transform .15s ease;
+}
+.drill-card:hover{transform:translateY(-2px);}
+.drill-card h5{font-size:13.5px; font-weight:600;}
+.drill-card .dsub{font-size:11px; color:var(--ink-soft); font-family:var(--font-mono);}
+.drill-card .bar{margin-top:2px;}
+
+/* question runner */
+.qrunner-top{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:16px; flex-wrap:wrap;}
+.qrunner-timer{font-family:var(--font-mono); font-size:13px; font-weight:700; background:var(--panel); color:#eee7d3; padding:8px 14px; border-radius:100px; display:flex; align-items:center; gap:6px;}
+.qrunner-timer svg{width:14px; height:14px;}
+.hindi-toggle{display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; border:1px solid var(--rule); background:var(--surface); color:var(--ink); border-radius:100px; padding:8px 14px;}
+.hindi-toggle.on{background:var(--brass-soft); border-color:var(--brass); color:#5c440f;}
+.q-progress{font-size:11.5px; color:var(--ink-soft); font-family:var(--font-mono);}
+.q-card{border:1px solid var(--rule); border-radius:var(--radius-m); background:var(--surface-2); padding:18px; margin-bottom:16px;}
+.q-text{font-size:15px; font-weight:500; line-height:1.55; margin-bottom:16px;}
+.q-options{display:flex; flex-direction:column; gap:9px;}
+.q-opt{display:flex; align-items:center; gap:10px; padding:11px 13px; border:1.5px solid var(--rule); border-radius:var(--radius-s); background:var(--surface); font-size:13.5px; text-align:left;}
+.q-opt:hover{border-color:var(--navy-bright);}
+.q-opt.sel{border-color:var(--navy-bright); background:var(--surface-2); font-weight:600;}
+.q-opt.correct{border-color:var(--sage); background:var(--sage-soft); font-weight:600;}
+.q-opt.wrong{border-color:var(--seal); background:var(--seal-soft); font-weight:600;}
+.q-opt-letter{width:24px; height:24px; border-radius:50%; border:1.4px solid var(--rule); display:flex; align-items:center; justify-content:center; font-size:11.5px; font-weight:700; flex-shrink:0;}
+.q-nav{display:flex; gap:10px; margin-top:16px;}
+.q-nav button{flex:1;}
+.q-summary{text-align:center; padding:30px 12px;}
+.q-summary .big{font-family:var(--font-display); font-size:34px; font-weight:600; margin:8px 0;}
+.subj-progress-row{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:4px;}
+.pyq-solution{background:var(--surface); border:1px dashed var(--rule-strong); border-radius:var(--radius-s); padding:12px; margin-top:10px; font-size:13px; line-height:1.6; color:var(--ink-soft); display:none;}
+.pyq-solution.show{display:block;}
+.pyq-reveal-btn{font-size:12px; font-weight:600; color:var(--navy-bright); background:none; border:1px solid var(--rule); border-radius:100px; padding:6px 12px; margin-top:8px;}
+.supa-status{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-family:var(--font-mono); padding:4px 10px; border-radius:100px; border:1px solid var(--rule);}
+.supa-status.connected{color:var(--sage); border-color:var(--sage);}
+.supa-status.off{color:var(--ink-faint);}
 </style>
 </head>
 <body>
@@ -564,8 +621,8 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
       <div class="rail-tabs" id="railTabs"></div>
     </div>
     <button class="rail-bottom" id="railProfileBtn">
-      <img class="rail-avatar" src="https://i.pravatar.cc/80?img=13" alt="">
-      <div class="rail-bottom-text"><b>Aarav Mehta</b><span>CSE 2027 · Attempt 2</span></div>
+      <div class="rail-avatar js-avatar" id="railAvatar" aria-hidden="true"></div>
+      <div class="rail-bottom-text"><b id="railName">Aarav Mehta</b><span id="railExam">CSE 2027</span></div>
     </button>
   </nav>
   <div class="backdrop" id="backdrop"></div>
@@ -576,14 +633,14 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
       <!-- ===== topbar ===== -->
       <header class="topbar">
         <div class="topbar-left">
-          <button class="icon-btn" id="hamburgerBtn" aria-label="Toggle sidebar">
+          <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle sidebar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
           </button>
           <button class="profile" id="profileTrigger">
-            <img src="https://i.pravatar.cc/80?img=13" alt="">
+            <div class="avatar-badge js-avatar" id="topAvatar" aria-hidden="true"></div>
             <div>
-              <div class="profile-name">Aarav Mehta</div>
-              <div class="profile-sub">CSE 2027 · Attempt 2</div>
+              <div class="profile-name" id="topName">Aarav Mehta</div>
+              <div class="profile-sub" id="topExam">CSE 2027</div>
             </div>
           </button>
         </div>
@@ -644,11 +701,19 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
   <div class="modal" id="settingsModal">
     <button class="modal-close" id="closeSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <h3>Profile &amp; settings</h3>
-    <p class="sub">Kept for this session only.</p>
+    <p class="sub">Kept for this session, and synced to Supabase once connected. <span class="supa-status off" id="supaStatusChip">Supabase: not connected</span></p>
     <div class="field"><label>Name</label><input type="text" id="setName" value="Aarav Mehta"></div>
     <div class="field"><label>Email</label><input type="text" id="setEmail" value="aarav.mehta@example.com"></div>
-    <div class="field"><label>Target exam</label><select id="setYear"><option>CSE 2027 · Attempt 2</option><option>CSE 2028 · Attempt 1</option></select></div>
-    <div class="field"><label>Optional subject</label><select><option>History</option><option>Geography</option><option>Public Administration</option><option>Political Science</option><option>Sociology</option></select></div>
+    <div class="field"><label>Mobile number</label><input type="tel" id="setMobile" placeholder="e.g. +91 98765 43210"></div>
+    <div class="field"><label>Target exam</label><select id="setYear"><option>CSE 2027</option><option>CSE 2028</option><option>CSE 2029</option><option>CSE 2030</option></select></div>
+    <div class="field"><label>Optional subject</label><select id="setOptional"></select></div>
+    <div class="field">
+      <label>Avatar</label>
+      <div class="priority-picker">
+        <button class="pchip" id="setGenderMaleBtn" type="button">🙋‍♂️ Male</button>
+        <button class="pchip" id="setGenderFemaleBtn" type="button">🙋‍♀️ Female</button>
+      </div>
+    </div>
     <div class="field">
       <label>Appearance</label>
       <div class="priority-picker">
@@ -663,6 +728,31 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
       <label class="check-row"><input type="checkbox"> Planning Ahead due-today alert</label>
     </div>
     <button class="modal-submit" id="saveSettings">Save changes</button>
+    <button class="modal-back" id="openSupabaseSetup" type="button" style="margin-top:10px;">Connect Supabase</button>
+  </div>
+</div>
+
+<!-- ===== Supabase connect modal ===== -->
+<div class="overlay" id="supabaseOverlay">
+  <div class="modal" id="supabaseModal">
+    <button class="modal-close" id="closeSupabase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <h3>Connect Supabase</h3>
+    <p class="sub">Paste your project URL and anon/public API key. This is stored locally in your browser and used to read/write your profile, tasks and question banks.</p>
+    <div class="field"><label>Project URL</label><input type="text" id="supaUrlInput" placeholder="https://xxxxx.supabase.co"></div>
+    <div class="field"><label>Anon / public API key</label><input type="text" id="supaKeyInput" placeholder="eyJhbGciOi..."></div>
+    <div class="info-block">
+      <b>Expected tables (create these in Supabase, we'll wire up more as you upload data):</b>
+      <table class="mini-table">
+        <tr><th>Table</th><th>Purpose</th></tr>
+        <tr><td>profiles</td><td>id, name, email, mobile, target_exam, optional_subject, gender</td></tr>
+        <tr><td>tasks</td><td>id, title, cat, done, completed_at, themes</td></tr>
+        <tr><td>csat_questions</td><td>section, topic, practice_no, level, question_en, question_hi, options, correct_index</td></tr>
+        <tr><td>prelims_pyqs</td><td>subject, subtopic, year, question_en, question_hi, options, correct_index</td></tr>
+        <tr><td>mains_pyqs</td><td>paper (GS1-4), year, question, solution, topic</td></tr>
+      </table>
+    </div>
+    <button class="modal-submit" id="saveSupabaseBtn">Save &amp; connect</button>
+    <button class="modal-back" id="disconnectSupabaseBtn" type="button">Disconnect</button>
   </div>
 </div>
 
@@ -750,7 +840,7 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
   <div class="modal modal-wide" id="ptaModal">
     <button class="modal-close" id="closePta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <h3>Prelims Test Analysis</h3>
-    <p class="sub">Log HLTs and FLTs round by round, break them down by subject, and watch the trajectory.</p>
+    <p class="sub">Log tests round by round, break them down by subject, and watch the trajectory.</p>
 
     <div class="pta-section">
       <h4>New test entry</h4>
@@ -762,8 +852,12 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
         <div class="field" style="margin-bottom:0;">
           <label>Test type</label>
           <div class="priority-picker">
-            <button class="pchip sel" id="ptaTypeHLT" type="button" data-type="HLT">HLT · 100 marks</button>
-            <button class="pchip" id="ptaTypeFLT" type="button" data-type="FLT">FLT · 200 marks</button>
+            <button class="pchip sel" id="ptaTypeHLT" type="button" data-type="HLT">HLT</button>
+            <button class="pchip" id="ptaTypeFLT" type="button" data-type="FLT">FLT</button>
+            <button class="pchip" id="ptaTypeCustom" type="button" data-type="Custom">Custom</button>
+          </div>
+          <div id="ptaCustomWrap" style="display:none; margin-top:8px;">
+             <input type="number" min="1" id="ptaCustomMax" placeholder="Max marks (e.g. 50)" style="width:100%;">
           </div>
         </div>
         <div class="field" style="margin-bottom:0;">
@@ -795,11 +889,12 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
     </div>
 
     <div class="pta-section">
-      <h4>Score trajectory — HLT vs FLT</h4>
+      <h4>Score trajectory</h4>
       <div id="ptaChartScore"></div>
       <div class="chart-legend">
         <span class="legend-chip"><span class="legend-dot" style="background:#9c2b2b"></span>HLT (% of 100)</span>
         <span class="legend-chip"><span class="legend-dot" style="background:#2e4a82"></span>FLT (% of 200)</span>
+        <span class="legend-chip"><span class="legend-dot" style="background:#a9781f"></span>Custom (% of Max)</span>
       </div>
     </div>
 
@@ -813,12 +908,98 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* ================= supabase setup ================= */
-const SUPABASE_URL = 'https://qhtgcvubyaopldxmisas.supabase.co/';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFodGdjdnVieWFvcGxkeG1pc2FzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNTIzNTQsImV4cCI6MjEwMjcyODM1NH0.p2IfhXkMhGNd1RkPkLLLqtIb9bcCBrVp_3WPcxn0eTg';
-// Renamed to 'db' to avoid conflict with the Supabase CDN script
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+/* ================= Supabase integration ================= */
+let supa = null;
+let SUPA_URL = localStorage.getItem('gb3_supa_url') || '';
+let SUPA_KEY = localStorage.getItem('gb3_supa_key') || '';
+let currentUserId = localStorage.getItem('gb3_user_id') || 'test-user-1'; 
 
+function initSupabase(){
+  if(SUPA_URL && SUPA_KEY && window.supabase){
+    try{ supa = window.supabase.createClient(SUPA_URL, SUPA_KEY); }
+    catch(e){ supa = null; }
+  } else { supa = null; }
+  updateSupaStatusChip();
+}
+function updateSupaStatusChip(){
+  const chip = document.getElementById('supaStatusChip');
+  if(!chip) return;
+  if(supa){ chip.textContent = 'Supabase: connected'; chip.classList.add('connected'); chip.classList.remove('off'); }
+  else { chip.textContent = 'Supabase: not connected'; chip.classList.remove('connected'); chip.classList.add('off'); }
+}
+
+async function fetchProfileFromSupabase(){
+  if(!supa || !currentUserId) return null;
+  try{
+    const { data, error } = await supa.from('profiles').select('*').eq('id', currentUserId).single();
+    if(error || !data) return null;
+    return data;
+  }catch(e){ return null; }
+}
+async function saveProfileToSupabase(profile){
+  if(!supa || !currentUserId) return false;
+  try{
+    const { error } = await supa.from('profiles').upsert({ id: currentUserId, ...profile });
+    return !error;
+  }catch(e){ return false; }
+}
+
+async function fetchFromSupabase(table, filters={}){
+  if(!supa) return null;
+  try{
+    let q = supa.from(table).select('*');
+    Object.entries(filters).forEach(([k,v])=>{ q = q.eq(k, v); });
+    const { data, error } = await q;
+    if(error) return null;
+    return data;
+  }catch(e){ return null; }
+}
+
+document.getElementById('openSupabaseSetup').onclick = ()=>{
+  document.getElementById('supaUrlInput').value = SUPA_URL;
+  document.getElementById('supaKeyInput').value = SUPA_KEY;
+  document.getElementById('supabaseOverlay').classList.add('open');
+};
+document.getElementById('closeSupabase').onclick = ()=> document.getElementById('supabaseOverlay').classList.remove('open');
+document.getElementById('supabaseOverlay').addEventListener('click', (e)=>{ if(e.target.id==='supabaseOverlay') document.getElementById('supabaseOverlay').classList.remove('open'); });
+document.getElementById('saveSupabaseBtn').onclick = async ()=>{
+  SUPA_URL = document.getElementById('supaUrlInput').value.trim();
+  SUPA_KEY = document.getElementById('supaKeyInput').value.trim();
+  localStorage.setItem('gb3_supa_url', SUPA_URL);
+  localStorage.setItem('gb3_supa_key', SUPA_KEY);
+  initSupabase();
+  document.getElementById('supabaseOverlay').classList.remove('open');
+  flashToast(supa ? 'Connected to Supabase.' : 'Could not connect — check the URL and key.');
+  if(supa){ await loadProfileIntoUI(); loadTasks().then(() => pullTodaysPlanIntoDaybook()); }
+};
+document.getElementById('disconnectSupabaseBtn').onclick = ()=>{
+  SUPA_URL=''; SUPA_KEY='';
+  localStorage.removeItem('gb3_supa_url'); localStorage.removeItem('gb3_supa_key');
+  supa = null;
+  updateSupaStatusChip();
+  document.getElementById('supabaseOverlay').classList.remove('open');
+  flashToast('Supabase disconnected.');
+};
+
+async function loadProfileIntoUI(){
+  const p = await fetchProfileFromSupabase();
+  if(!p) return;
+  if(p.name){
+    document.querySelectorAll('#topName, #railName, #setName').forEach(el=>{
+      if(el.tagName==='INPUT') el.value = p.name; else el.textContent = p.name;
+    });
+  }
+  if(p.target_exam){
+    document.querySelectorAll('#topExam, #railExam').forEach(el=> el.textContent = p.target_exam);
+    const sel = document.getElementById('setYear'); if(sel) sel.value = p.target_exam;
+  }
+  if(p.mobile){ const m = document.getElementById('setMobile'); if(m) m.value = p.mobile; }
+  if(p.email){ const em = document.getElementById('setEmail'); if(em) em.value = p.email; }
+  if(p.optional_subject){ const os = document.getElementById('setOptional'); if(os) os.value = p.optional_subject; }
+  if(p.gender){ userGender = p.gender; localStorage.setItem('gb3_gender', userGender); applyGenderPicker(); renderAvatars(); }
+}
+</script>
+<script>
 /* ================= data ================= */
 const CATEGORIES = [
   {id:'GS', label:'GS', icon:'book'},
@@ -853,49 +1034,30 @@ const ICONS = {
   lock:'<rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>',
   chat:'<path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>',
   gift:'<rect x="3" y="8" width="18" height="4"/><path d="M12 8v13M19 12v9H5v-9"/><path d="M7.5 8a2.5 2.5 0 010-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 010 5"/>',
+  trash:'<path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/>',
+  server:'<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><circle cx="7" cy="7" r=".6" fill="currentColor"/><circle cx="7" cy="17" r=".6" fill="currentColor"/>',
+  translate:'<path d="M4 5h9M7 3v2M9.5 5c-.5 3-2.5 5.5-5.5 7M6 8.5c1 1.5 2.5 2.5 4 3M13 21l4-9 4 9M14.5 18h5"/>',
 };
 function svg(name, extra=''){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" ${extra}>${ICONS[name]}</svg>`; }
 
 const THEMES = ["Polity & Constitution","Indian Economy","Physical Geography","Indian & World History","Environment & Ecology","Science & Technology","International Relations","Ethics & Governance","Indian Society","Disaster Management","Internal Security","Agriculture","Art & Culture","Social Justice","Bilateral Relations","Government Schemes","Biodiversity","Space & Defence Tech","World Geography","Health & Education Policy","Reports & Indices"];
 
+const OPTIONAL_SUBJECTS = ["Agriculture","Animal Husbandry and Veterinary Science","Anthropology","Botany","Chemistry","Civil Engineering","Commerce and Accountancy","Economics","Electrical Engineering","Geography","Geology","History","Law","Management","Mathematics","Mechanical Engineering","Medical Science","Philosophy","Physics","Political Science and International Relations","Psychology","Public Administration","Sociology","Statistics","Zoology","Assamese","Bengali","Bodo","Dogri","English","Gujarati","Hindi","Kannada","Kashmiri","Konkani","Maithili","Malayalam","Manipuri","Marathi","Nepali","Odia","Punjabi","Sanskrit","Santali","Sindhi","Tamil","Telugu","Urdu"];
+
 function todayKey(){ const d=new Date(); return d.toISOString().slice(0,10); }
 function offsetDateKey(days){ const d=new Date(); d.setDate(d.getDate()+days); return d.toISOString().slice(0,10); }
 
-/*
-// Original mock tasks replaced with dynamic fetching from Supabase
-let tasks = [
-  {id:1, title:"Laxmikanth Ch.9 — Emergency provisions", cat:"GS", done:false},
-  {id:2, title:"PYQ set — Mughal administration", cat:"Optional", done:true, completedAt:todayKey()},
-  {id:3, title:"Read: Farm loan waivers", cat:"CA", done:false, themes:["Indian Economy","Government Schemes"]},
-  {id:4, title:"CSAT Percentage — Level 1 set", cat:"CSAT", done:false},
-  {id:5, title:"Revise: Fundamental Rights case laws", cat:"Revision", done:false},
-];
-*/
-
 let tasks = [];
-
 async function loadTasks() {
-  const { data, error } = await db
-    .from('tasks')
-    .select('*')
-    .order('id', { ascending: true });
-
-  if (error) {
-    console.error("Error loading tasks:", error);
-    return;
+  if (!supa) return;
+  const { data, error } = await supa.from('tasks').select('*').order('id', { ascending: true });
+  if (!error && data) {
+    tasks = data.map(t => ({
+      id: t.id, title: t.title, cat: t.cat, done: t.done,
+      completedAt: t.completed_at, themes: t.themes || [], fromPlan: false
+    }));
+    render();
   }
-  
-  // Map Supabase snake_case columns back to your camelCase frontend logic
-  tasks = data.map(t => ({
-    id: t.id,
-    title: t.title,
-    cat: t.cat,
-    done: t.done,
-    completedAt: t.completed_at,
-    themes: t.themes || []
-  }));
-
-  render();
 }
 
 let nextId = 6;
@@ -919,9 +1081,7 @@ const MODULES = [
     <div class="field"><label>File under</label><select id="planningCat">${CATEGORIES.map(c=>`<option value="${c.id}">${c.label}</option>`).join('')}</select></div>
     <button class="modal-submit" id="planningAddBtn">Add to backlog</button>
     <div id="planningList" style="margin-top:14px;"></div>`},
-  {icon:'quiz', tag:'Graded Quiz · CSAT Pattern Quiz', title:'CSAT', desc:"Practice feeds the Daybook directly — clear an L1 set here and L2 lands in tomorrow's tasks automatically.", body:`
-    <div class="info-block">Attempt topic-wise CSAT sets. Completing a level here marks the linked Daybook task done and queues the next difficulty for tomorrow — no manual planning required.</div>
-    <div id="csatModuleSets"></div>`},
+  {icon:'quiz', tag:'Graded Quiz · CSAT Pattern Quiz', title:'CSAT', desc:"Quant &amp; Logical Reasoning, topic by topic — questions fetched straight from Supabase.", body:``},
   {icon:'clock', tag:'EMT · Time Log', title:'Time Log', desc:"Log study vs non-study hours by the block. Kept for 30 days, rolled up into daily, weekly and monthly pie charts.", body:`
     <div class="info-block" id="timeLogSummary"></div>
     <div class="pta-row">
@@ -933,28 +1093,30 @@ const MODULES = [
     <div id="timeLogTable"></div>
     <h4 style="font-family:var(--font-display); font-size:15px; margin:18px 0 6px;">Study vs non-study</h4>
     <div class="pie-row" id="timeLogPies"></div>`},
-  {icon:'book', tag:'EMT · Prelims PYQs', title:'Pre PYQs', desc:"Topic or theme-wise quizzes from past papers, each with a full worked solution — including why the wrong options are wrong.", body:`
-    <div class="info-block">Filter by topic, theme, or year. Every question set (PYQ+) also drills the discarded options — so you learn A, B and D, not just the correct C.</div>
-    <div class="field"><label>Theme</label><select id="pyqTheme">${THEMES.map(t=>`<option>${t}</option>`).join('')}</select></div>
-    <div class="field"><label>Year range</label><select id="pyqYear"><option>Last 5 years</option><option>Last 10 years</option><option>All years</option></select></div>
-    <button class="modal-submit" id="pyqStartBtn">Start practice set</button>
-    <div id="pyqDemoArea"></div>`},
-  {icon:'mains', tag:'EMT · Mains PYQs', title:'Mains PYQs + Solutions', desc:"Topic-wise and paper-wise Mains questions with solutions, sourced from open material and coaching content.", body:`
-    <div class="info-block">Tell it a goal — e.g. <i>“all Geography questions, next 2 weeks”</i> — and every tagged question is split evenly across the days, landing in the Daybook as <b>Practice X questions</b>.</div>
-    <div class="field"><label>Build a plan</label><select id="mainsPlanTheme">${THEMES.slice(0,8).map(t=>`<option>${t}</option>`).join('')}</select></div>
-    <div class="field"><label>Window</label><select id="mainsPlanWindow"><option value="7">1 week</option><option value="14">2 weeks</option><option value="30">1 month</option></select></div>
-    <button class="modal-submit" id="mainsPlanBtn">Build plan</button>`},
+  {icon:'book', tag:'EMT · Prelims PYQs', title:'Pre PYQs', desc:"Pick a subject and drill down into subtopics, or attempt full papers year by year — sourced from Supabase.", body:``},
+  {icon:'mains', tag:'EMT · Mains PYQs', title:'Mains PYQs + Solutions', desc:"GS1–GS4, broken down by topic and individual year (2026-2013) — subjective questions with full solutions, sourced from Supabase.", body:``},
   {icon:'mains', tag:'EMT · Optional PYQs', title:'Optional PYQs', desc:"The same topic-and-year categorised Mains-PYQ engine, scoped to your Optional subject.", body:`
     <div class="info-block">Set a goal like <i>“all questions from the last 5 years on a given topic”</i> and it's divided evenly into daily practice, filed straight into the Daybook.</div>
     <div class="field"><label>Topic</label><input type="text" id="optPlanTopic" placeholder="e.g. Mughal administration"></div>
     <div class="field"><label>Window</label><select id="optPlanWindow"><option value="7">1 week</option><option value="14">2 weeks</option><option value="30">1 month</option></select></div>
     <button class="modal-submit" id="optPlanBtn">Build plan</button>`},
-  {icon:'check2', tag:'EMT · Prelims Test Analysis', title:'Prelims Test Analysis', desc:"Log every HLT and FLT round by round, break each down by subject, and track the trajectory of both.", body:``},
+  {icon:'check2', tag:'EMT · Prelims Test Analysis', title:'Prelims Test Analysis', desc:"Log every HLT, FLT, or Custom test round by round, break each down by subject, and track the trajectory.", body:``},
   {icon:'check2', tag:'EMT · Mains Test Analysis', title:'Mains Test Analysis', desc:"Answer-writing test scores, evaluator feedback and weak topics tracked across the year.", body:`
-    <div class="info-block">Log copy-checked Mains tests with evaluator marks per question, GS-paper-wise trend lines, and the weak topics called out — these feed straight into your Statistics danger zones.</div>
+    <div class="info-block">Log copy-checked Mains tests with evaluator marks, GS-paper-wise trend lines, and the weak topics called out — these feed straight into your Statistics danger zones.</div>
     <div class="pta-row">
       <div class="field" style="margin-bottom:0;"><label>Test name</label><input type="text" id="mtaName" placeholder="e.g. GS Paper 2 — copy check 4"></div>
-      <div class="field" style="margin-bottom:0;"><label>Marks (out of 250)</label><input type="number" min="0" max="250" id="mtaMarks" value="0"></div>
+      <div class="field" style="margin-bottom:0;">
+        <label>Test type</label>
+        <select id="mtaType">
+          <option value="full">Full length test (out of 250)</option>
+          <option value="half">Half length test (out of 125)</option>
+          <option value="custom">Custom test</option>
+        </select>
+      </div>
+    </div>
+    <div class="pta-row">
+      <div class="field" style="margin-bottom:0;" id="mtaCustomMaxWrap"><label>Maximum marks</label><input type="number" min="1" id="mtaCustomMax" placeholder="e.g. 100"></div>
+      <div class="field" style="margin-bottom:0;"><label>Marks obtained</label><input type="number" min="0" id="mtaMarks" value="0"></div>
     </div>
     <div class="field"><label>Evaluator feedback</label><input type="text" id="mtaFeedback" placeholder="e.g. Good structure, thin on examples"></div>
     <div class="field"><label>Weak topics (comma separated)</label><input type="text" id="mtaWeak" placeholder="e.g. DPSP, Federalism"></div>
@@ -970,16 +1132,38 @@ const MODULES = [
     <div id="statsDangerBlock"></div>`},
 ];
 
+/* ================= avatar (male/female icon, no photos) =================
+   Backend integration note: this should come from the user's registration
+   record — e.g. a `profiles.gender` column in Supabase, set once at
+   sign-up ('male' | 'female'). Until that's wired up, the choice is kept
+   in localStorage and editable from Profile & settings, and
+   loadProfileIntoUI() above already reads p.gender the moment Supabase
+   is connected and a profile row exists. */
+let userGender = localStorage.getItem('gb3_gender') || 'male';
+function avatarEmoji(){ return userGender==='female' ? '👩' : '👨'; }
+function renderAvatars(){
+  document.querySelectorAll('.js-avatar').forEach(el=> el.textContent = avatarEmoji());
+}
+function applyGenderPicker(){
+  const maleBtn = document.getElementById('setGenderMaleBtn');
+  const femaleBtn = document.getElementById('setGenderFemaleBtn');
+  if(!maleBtn || !femaleBtn) return;
+  maleBtn.classList.toggle('sel', userGender==='male');
+  femaleBtn.classList.toggle('sel', userGender==='female');
+}
+
 /* ================= render: sidebar (static account actions) ================= */
 function renderNav(){
   const rail = document.getElementById('railTabs');
   rail.innerHTML = `
     <button class="rail-tab" id="railSettingsBtn">${svg('settings')}<span>Profile &amp; settings</span></button>
+    <button class="rail-tab" id="railSupaBtn">${svg('server')}<span>Connect Supabase</span></button>
     <button class="rail-tab danger" id="railCloseDaybookBtn">${svg('lock')}<span>Close your daybook</span></button>
     <button class="rail-tab" id="railFeedbackBtn">${svg('chat')}<span>Feedback</span></button>
     <button class="rail-tab" id="railReferralBtn">${svg('gift')}<span>Refer a friend</span></button>
   `;
   document.getElementById('railSettingsBtn').onclick = ()=>{ openSettings(); closeSidebarOnMobile(); };
+  document.getElementById('railSupaBtn').onclick = ()=>{ document.getElementById('openSupabaseSetup').click(); closeSidebarOnMobile(); };
   document.getElementById('railCloseDaybookBtn').onclick = ()=>{ document.getElementById('closeDaybookOverlay').classList.add('open'); closeSidebarOnMobile(); };
   document.getElementById('railFeedbackBtn').onclick = ()=>{ document.getElementById('feedbackOverlay').classList.add('open'); closeSidebarOnMobile(); };
   document.getElementById('railReferralBtn').onclick = ()=>{ openReferral(); closeSidebarOnMobile(); };
@@ -1027,6 +1211,7 @@ function renderTasks(){
         ${t.fromPlan?`<span class="task-meta"><span class="today-badge">Planning Ahead</span></span>`:''}
       </div>
       <div class="task-actions">
+        <button class="trash-btn" aria-label="Delete task" title="Delete task">${svg('trash')}</button>
         <div class="menu-wrap">
           <button class="dots" aria-label="Task options">${svg('dots')}</button>
           <div class="menu${openMenuId===t.id?' open':''}">
@@ -1040,6 +1225,7 @@ function renderTasks(){
   list.querySelectorAll('.task').forEach(el=>{
     const id = Number(el.dataset.id);
     el.querySelector('.check').onclick = ()=>{ toggleDone(id); };
+    el.querySelector('.trash-btn').onclick = (e)=>{ e.stopPropagation(); deleteTask(id); };
     el.querySelector('.dots').onclick = (e)=>{ e.stopPropagation(); openMenuId = openMenuId===id? null : id; renderTasks(); };
     el.querySelector('.reschedule').onclick = ()=>{ rescheduleTask(id); };
     el.querySelector('.delete').onclick = ()=>{ deleteTask(id); };
@@ -1051,26 +1237,13 @@ async function toggleDone(id){
   const t=tasks.find(t=>t.id===id);
   t.done=!t.done;
   t.completedAt = t.done ? todayKey() : null;
-
-  renderTasks(); 
-  renderTabStrip();
-
-  await db
-    .from('tasks')
-    .update({ done: t.done, completed_at: t.completedAt })
-    .eq('id', id);
+  renderTasks(); renderTabStrip();
+  if(supa) await supa.from('tasks').update({ done: t.done, completed_at: t.completedAt }).eq('id', id);
 }
 
 async function deleteTask(id){ 
-  tasks = tasks.filter(t=>t.id!==id); 
-  openMenuId=null; 
-  renderTasks(); 
-  renderTabStrip(); 
-
-  await db
-    .from('tasks')
-    .delete()
-    .eq('id', id);
+  tasks = tasks.filter(t=>t.id!==id); openMenuId=null; renderTasks(); renderTabStrip(); 
+  if(supa) await supa.from('tasks').delete().eq('id', id);
 }
 
 function rescheduleTask(id){
@@ -1129,32 +1302,18 @@ document.getElementById('closeAdd').onclick = ()=> overlay.classList.remove('ope
 overlay.addEventListener('click', (e)=>{ if(e.target===overlay) overlay.classList.remove('open'); });
 
 async function fileTask(){
-  const newTask = { 
-    title: pendingTitle, 
-    cat: activeCat, 
-    done: false,
-    themes: activeCat === 'CA' ? [...selectedThemes] : []
-  };
-
-  const { data, error } = await db
-    .from('tasks')
-    .insert([newTask])
-    .select();
-
-  if (error) {
-    flashToast("Error saving task.");
-    return;
+  const newTask = { title: pendingTitle, cat: activeCat, done: false, themes: activeCat === 'CA' ? [...selectedThemes] : [] };
+  
+  if (supa) {
+    const { data, error } = await supa.from('tasks').insert([newTask]).select();
+    if (!error && data) {
+      const savedTask = data[0];
+      tasks.push({ id: savedTask.id, title: savedTask.title, cat: savedTask.cat, done: savedTask.done, themes: savedTask.themes, fromPlan: false });
+    }
+  } else {
+    // Fallback if Supabase isn't connected yet
+    tasks.push({id:nextId++, title:pendingTitle, cat:activeCat, done:false, themes: activeCat === 'CA' ? [...selectedThemes] : [], fromPlan: false});
   }
-
-  const savedTask = data[0];
-  tasks.push({
-    id: savedTask.id,
-    title: savedTask.title,
-    cat: savedTask.cat,
-    done: savedTask.done,
-    themes: savedTask.themes,
-    fromPlan: false // keep compatibility with UI
-  });
 
   overlay.classList.remove('open');
   render();
@@ -1207,6 +1366,27 @@ function openModule(i){
     initPtaOnce();
     return;
   }
+  if(m.title==='CSAT'){
+    document.getElementById('moduleModalBody').innerHTML = `<h3>${m.title}</h3><p class="sub">${m.desc}</p><div id="csatDrillRoot"></div>`;
+    moduleOverlay.classList.add('open','wide-open');
+    csatNav = {view:'section'};
+    renderCsatDrill();
+    return;
+  }
+  if(m.title==='Pre PYQs'){
+    document.getElementById('moduleModalBody').innerHTML = `<h3>${m.title}</h3><p class="sub">${m.desc}</p><div id="preDrillRoot"></div>`;
+    moduleOverlay.classList.add('open','wide-open');
+    preNav = {view:'home'};
+    renderPreDrill();
+    return;
+  }
+  if(m.title==='Mains PYQs + Solutions'){
+    document.getElementById('moduleModalBody').innerHTML = `<h3>${m.title}</h3><p class="sub">${m.desc}</p><div id="mainsDrillRoot"></div>`;
+    moduleOverlay.classList.add('open','wide-open');
+    mainsNav = {view:'home'};
+    renderMainsDrill();
+    return;
+  }
   document.getElementById('moduleModalBody').innerHTML = `<h3>${m.title}</h3><p class="sub">${m.desc}</p>${m.body}`;
   moduleOverlay.classList.add('open','wide-open');
   if(m.title==='Current Affairs Visual Map'){ renderObsidianGraph(); }
@@ -1215,40 +1395,17 @@ function openModule(i){
 
 /* ================= module demo state + wiring ================= */
 let csatSets = [
-  {name:'Percentage — Level 1', done:0, total:20},
-  {name:'Data Interpretation — Level 1', done:12, total:20},
-  {name:'Logical Reasoning — Level 2', done:4, total:15},
+  {name:'Quant — Percentage', done:0, total:20},
+  {name:'Quant — Time, Speed and Distance', done:12, total:20},
+  {name:'Logical Reasoning — Puzzles', done:4, total:15},
 ];
 let mtaTests = [
-  {name:"GS Paper 3 — copy check 2", marks:142, feedback:"Strong on structure, add more data points.", weak:["Internal Security","Disaster Management"]},
+  {name:"GS Paper 3 — copy check 2", type:'full', max:250, marks:142, feedback:"Strong on structure, add more data points.", weak:["Internal Security","Disaster Management"]},
 ];
 
 function wireModuleDemo(title){
-  if(title==='CSAT'){ renderCsatModuleSets(); }
-  if(title==='Pre PYQs'){
-    document.getElementById('pyqStartBtn').onclick = ()=>{
-      const theme = document.getElementById('pyqTheme').value;
-      const year = document.getElementById('pyqYear').value;
-      document.getElementById('pyqDemoArea').innerHTML = `
-        <div class="info-block" style="margin-top:12px;">
-          <b>Q1 (${theme}, ${year}).</b> Demo question loaded with a full worked solution, including why each discarded option is wrong.
-          <div style="margin-top:8px;"><button class="modal-submit" id="pyqRevealBtn" type="button">Reveal solution</button></div>
-        </div>`;
-      document.getElementById('pyqRevealBtn').onclick = ()=>{
-        flashToast('Solution revealed — options A, B and D explained alongside correct answer C.');
-      };
-      flashToast(`Loading a ${theme} practice set (${year})...`);
-    };
-  }
   if(title==='Mains PYQs + Solutions'){
-    document.getElementById('mainsPlanBtn').onclick = ()=>{
-      const theme = document.getElementById('mainsPlanTheme').value;
-      const days = Number(document.getElementById('mainsPlanWindow').value);
-      const perDay = Math.max(1, Math.round(30/days));
-      tasks.push({id:nextId++, title:`Practice ${perDay} Mains questions — ${theme}`, cat:'GS', done:false});
-      render();
-      flashToast(`Plan built: ~${perDay} questions/day on ${theme}, filed to today's Daybook.`);
-    };
+    document.getElementById('mainsPlanBtn') && (document.getElementById('mainsPlanBtn').onclick = ()=>{});
   }
   if(title==='Time Log'){
     renderTimeLogTable();
@@ -1267,7 +1424,7 @@ function wireModuleDemo(title){
       flashToast(`Logged ${hours}h of ${type==='study'?'study':'non-study'} time.`);
     };
   }
-  if(title==='Planning Ahead'){
+  if(title==='Weekly & Monthly Planning'){
     renderPlanningList();
     document.getElementById('planningDate').value = todayKey();
     document.getElementById('planningAddBtn').onclick = ()=>{
@@ -1286,14 +1443,27 @@ function wireModuleDemo(title){
   if(title==='Gratitude Vault'){ renderGratitudeList(); }
   if(title==='Mains Test Analysis'){
     renderMtaList();
+    const typeSel = document.getElementById('mtaType');
+    const customWrap = document.getElementById('mtaCustomMaxWrap');
+    const syncMtaType = ()=>{ customWrap.style.display = typeSel.value==='custom' ? 'block' : 'none'; };
+    typeSel.onchange = syncMtaType;
+    syncMtaType();
     document.getElementById('mtaSaveBtn').onclick = ()=>{
       const name = document.getElementById('mtaName').value.trim();
       if(!name){ document.getElementById('mtaName').focus(); return; }
+      const type = typeSel.value;
+      let max = 250;
+      if(type==='half') max = 125;
+      else if(type==='custom') max = Number(document.getElementById('mtaCustomMax').value) || 100;
       const marks = Number(document.getElementById('mtaMarks').value)||0;
       const feedback = document.getElementById('mtaFeedback').value.trim();
       const weak = document.getElementById('mtaWeak').value.split(',').map(s=>s.trim()).filter(Boolean);
-      mtaTests.unshift({name, marks, feedback, weak});
-      document.getElementById('mtaName').value=''; document.getElementById('mtaMarks').value='0'; document.getElementById('mtaFeedback').value=''; document.getElementById('mtaWeak').value='';
+      mtaTests.unshift({name, type, max, marks, feedback, weak});
+      document.getElementById('mtaName').value='';
+      document.getElementById('mtaMarks').value='0';
+      document.getElementById('mtaFeedback').value='';
+      document.getElementById('mtaWeak').value='';
+      document.getElementById('mtaCustomMax').value='';
       renderMtaList();
       flashToast('Test logged to Mains Test Analysis.');
     };
@@ -1308,26 +1478,6 @@ function wireModuleDemo(title){
       flashToast(`Plan built: ~${perDay} questions/day on ${topic}, filed to today's Daybook.`);
     };
   }
-}
-
-function renderCsatModuleSets(){
-  const wrap = document.getElementById('csatModuleSets');
-  if(!wrap) return;
-  wrap.innerHTML = csatSets.map((s,i)=>`
-    <div class="csat-card" style="margin-bottom:8px;">
-      <div class="csat-top"><strong>${s.name}</strong><span>${s.done}/${s.total} done</span></div>
-      <div class="bar"><i style="width:${(s.done/s.total*100)}%"></i></div>
-      ${s.done<s.total ? `<button class="modal-submit" data-i="${i}" style="margin-top:6px;">Mark set complete</button>` : `<span style="font-size:11.5px; color:var(--sage); font-weight:600;">Cleared — next level queued to tomorrow's Daybook.</span>`}
-    </div>`).join('');
-  wrap.querySelectorAll('button[data-i]').forEach(btn=>{
-    btn.onclick = ()=>{
-      const i = Number(btn.dataset.i);
-      csatSets[i].done = csatSets[i].total;
-      csatSolvedLog.push({date: todayKey(), n: csatSets[i].total});
-      renderCsatModuleSets();
-      flashToast(`${csatSets[i].name} cleared — next level queued to tomorrow's Daybook.`);
-    };
-  });
 }
 
 /* ================= Planning Ahead — dated backlog that feeds the Daybook ================= */
@@ -1517,7 +1667,7 @@ function renderMtaList(){
   if(!el) return;
   el.innerHTML = mtaTests.map(t=>`
     <div class="test-card">
-      <div class="test-card-head"><h5>${t.name}</h5><span class="marks-pill">${t.marks} / 250</span></div>
+      <div class="test-card-head"><h5>${t.name}</h5><span class="marks-pill">${t.marks} / ${t.max}</span></div>
       ${t.feedback ? `<div class="test-card-meta">${t.feedback}</div>` : ''}
       ${t.weak && t.weak.length ? `<div class="subject-chips" style="margin-top:8px;">${t.weak.map(w=>`<span class="subj-chip low">${w}</span>`).join('')}</div>` : ''}
     </div>`).join('');
@@ -1580,12 +1730,6 @@ document.getElementById('closePta').onclick = ()=> ptaOverlay.classList.remove('
 ptaOverlay.addEventListener('click', (e)=>{ if(e.target===ptaOverlay) ptaOverlay.classList.remove('open','wide-open'); });
 
 /* ================= CA Map: Obsidian-style force-directed note graph ================= */
-/* nodes = every CA task (glowing brass) + every syllabus theme it's linked to (navy).
-   physics: all nodes repel each other (charge), edges pull linked pairs together (spring),
-   centring force keeps the cloud on-canvas. Dragging a node pins it in place.
-   Clicking a node (without dragging) locks the highlight on it — its links glow,
-   everything else dims — until you click it again or click empty canvas. Zoom via
-   +/- buttons, mouse wheel, or pinch. */
 let fgNodes = [];
 let fgEdges = [];
 let fgRAF = null;
@@ -1611,7 +1755,6 @@ function buildForceGraph(){
     t.themes.forEach(th=> edges.push({a:'t'+t.id, b:'th_'+th}));
   });
 
-  // preserve existing positions/velocities for nodes that already exist
   const prev = new Map(fgNodes.map(n=>[n.id, n]));
   fgNodes = Array.from(nodeMap.values()).map(n=>{
     const old = prev.get(n.id);
@@ -1638,7 +1781,6 @@ function fgStep(){
       const f = REPEL/d2;
       fx += (dx/d)*f; fy += (dy/d)*f;
     }
-    // center pull
     fx += (FG_W/2 - a.x)*CENTER_K;
     fy += (FG_H/2 - a.y)*CENTER_K;
     a.fx = fx; a.fy = fy;
@@ -1738,7 +1880,6 @@ function wireGraphInteractions(){
     g.addEventListener('pointerup', ()=>{
       const id = g.dataset.id;
       if(!fgDragMoved){
-        // treat as a click: toggle the highlight lock
         fgActiveId = fgActiveId===id ? null : id;
       }
     });
@@ -1764,7 +1905,6 @@ function wireGraphInteractions(){
     evt.preventDefault();
     fgSetZoom(fgZoom + (evt.deltaY<0 ? 0.15 : -0.15));
   }, {passive:false});
-  // basic pinch-to-zoom
   let pinchStartDist = null, pinchStartZoom = 1;
   svgEl.addEventListener('touchstart', (evt)=>{
     if(evt.touches.length===2){
@@ -1809,7 +1949,6 @@ const SUBJ_COLORS = {
 };
 function buildSubj(pairs){ const o={}; SUBJECTS10.forEach((s,i)=>{ o[s] = {c:pairs[i][0], i:pairs[i][1]}; }); return o; }
 
-/* 10 demo entries — 5 HLT (100 marks) + 5 FLT (200 marks), interleaved across ~9 weeks, trending upward */
 let ptaTests = [
   {id:1,  name:"HLT — Ancient & Medieval focus",   type:"HLT", max:100, date:"2026-06-01", subjects:["Ancient History","Medieval History","Current Affairs"], rounds:[{c:10,i:4},{c:9,i:5},{c:7,i:6}],  sw: buildSubj([[5,1],[2,2],[1,2],[2,3],[3,2],[3,3],[5,1],[1,3],[2,3],[2,2]])},
   {id:2,  name:"FLT — Full syllabus 01",           type:"FLT", max:200, date:"2026-06-08", subjects:["All"], rounds:[{c:18,i:8},{c:17,i:9},{c:15,i:10}], sw: buildSubj([[9,2],[4,4],[3,4],[4,5],[5,3],[5,5],[9,2],[3,6],[4,5],[4,4]])},
@@ -1836,7 +1975,6 @@ function ptaTestAccuracy(t){
 }
 function ptaSubjId(s){ return s.replace(/[^a-zA-Z]/g,''); }
 
-/* ---------- init once, first time the module opens ---------- */
 let ptaInited = false;
 function initPtaOnce(){
   if(ptaInited){ return; }
@@ -1848,6 +1986,7 @@ function initPtaOnce(){
 
   document.getElementById('ptaTypeHLT').onclick = ()=>{ ptaSelectedType='HLT'; syncPtaType(); };
   document.getElementById('ptaTypeFLT').onclick = ()=>{ ptaSelectedType='FLT'; syncPtaType(); };
+  document.getElementById('ptaTypeCustom').onclick = ()=>{ ptaSelectedType='Custom'; syncPtaType(); };
 
   document.getElementById('ptaSubjToggleBtn').onclick = (e)=>{
     ptaSubjectPanelOpen = !ptaSubjectPanelOpen;
@@ -1872,9 +2011,10 @@ function initPtaOnce(){
 function syncPtaType(){
   document.getElementById('ptaTypeHLT').classList.toggle('sel', ptaSelectedType==='HLT');
   document.getElementById('ptaTypeFLT').classList.toggle('sel', ptaSelectedType==='FLT');
+  document.getElementById('ptaTypeCustom').classList.toggle('sel', ptaSelectedType==='Custom');
+  document.getElementById('ptaCustomWrap').style.display = ptaSelectedType==='Custom' ? 'block' : 'none';
 }
 
-/* ---------- subjects multi-select (All Subjects OR many specific ones) ---------- */
 function renderPtaSubjectMultiselect(){
   const panel = document.getElementById('ptaSubjPanel');
   const items = ["All Subjects", ...SUBJECTS10];
@@ -1902,7 +2042,6 @@ function renderPtaSubjectMultiselect(){
   });
 }
 
-/* ---------- Round 1 / 2 / 3 inputs, live marks + accuracy ---------- */
 function renderPtaRounds(){
   const wrap = document.getElementById('ptaRounds');
   wrap.innerHTML = [1,2,3].map(n=>`
@@ -1925,7 +2064,6 @@ function renderPtaRounds(){
   });
 }
 
-/* ---------- expandable subject-wise breakdown (10 subjects) ---------- */
 function renderPtaSubjectPanel(){
   const wrap = document.getElementById('ptaSubjectPanel');
   wrap.innerHTML = `<div class="subject-line" style="font-weight:600; color:var(--ink-soft); font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:.04em;"><span>Subject</span><span>Correct</span><span>Incorrect</span><span>Marks</span><span>Acc.</span></div>` +
@@ -1955,7 +2093,6 @@ function renderPtaSubjectPanel(){
   });
 }
 
-/* ---------- save a new test ---------- */
 function savePtaTest(){
   const name = document.getElementById('ptaName').value.trim();
   if(!name){ document.getElementById('ptaName').focus(); return; }
@@ -1971,8 +2108,14 @@ function savePtaTest(){
     const i = Number(document.getElementById(`ptaSW${id}I`).value)||0;
     if(c || i){ sw[s] = {c,i}; }
   });
+
+  let maxMarks = 100;
+  if(ptaSelectedType === 'HLT') maxMarks = 100;
+  else if(ptaSelectedType === 'FLT') maxMarks = 200;
+  else maxMarks = Number(document.getElementById('ptaCustomMax').value) || 50;
+
   ptaTests.push({
-    id: nextPtaId++, name, type: ptaSelectedType, max: ptaSelectedType==='HLT' ? 100 : 200,
+    id: nextPtaId++, name, type: ptaSelectedType, max: maxMarks,
     date, subjects: [...ptaSelectedSubjects], rounds, sw
   });
 
@@ -1989,7 +2132,6 @@ function savePtaTest(){
   flashToast('Test saved to Prelims Test Analysis.');
 }
 
-/* ---------- logged-tests panel ---------- */
 function renderPtaList(){
   const wrap = document.getElementById('ptaList');
   document.getElementById('ptaCount').textContent = ptaTests.length;
@@ -2014,7 +2156,6 @@ function renderPtaList(){
   }).join('');
 }
 
-/* ---------- hand-drawn SVG line chart (no external library) ---------- */
 function svgLineChart(series, xLabels, opts={}){
   const width=640, height=224, padL=34, padR=8, padT=10, padB=26;
   const plotW = width-padL-padR, plotH = height-padT-padB;
@@ -2044,21 +2185,21 @@ function svgLineChart(series, xLabels, opts={}){
   return svg;
 }
 
-/* ---------- chart 3: score trajectory, HLT vs FLT (normalised to % of max marks) ---------- */
 function renderPtaScoreChart(){
   const sorted = [...ptaTests].sort((a,b)=> new Date(a.date)-new Date(b.date));
   const hlt = sorted.filter(t=>t.type==='HLT');
   const flt = sorted.filter(t=>t.type==='FLT');
-  const maxLen = Math.max(hlt.length, flt.length, 1);
+  const custom = sorted.filter(t=>t.type==='Custom');
+  const maxLen = Math.max(hlt.length, flt.length, custom.length, 1);
   const xLabels = Array.from({length:maxLen}, (_,i)=> `Attempt ${i+1}`);
   const series = [
     {key:'hlt', color:'#9c2b2b', points: hlt.map((t,i)=>({x:i, y:(ptaTestMarks(t)/t.max)*100}))},
     {key:'flt', color:'#2e4a82', points: flt.map((t,i)=>({x:i, y:(ptaTestMarks(t)/t.max)*100}))},
+    {key:'custom', color:'#a9781f', points: custom.map((t,i)=>({x:i, y:(ptaTestMarks(t)/t.max)*100}))},
   ];
   document.getElementById('ptaChartScore').innerHTML = svgLineChart(series, xLabels, {yMax:100, yMin:0});
 }
 
-/* ---------- chart 4: subject-wise trajectory, one line per subject, toggleable legend ---------- */
 function renderPtaSubjectChart(){
   const sorted = [...ptaTests].sort((a,b)=> new Date(a.date)-new Date(b.date));
   const xLabels = sorted.map((t,i)=> `#${i+1}`);
@@ -2084,8 +2225,8 @@ function renderPtaSubjectChart(){
 
 /* ================= reading font picker ================= */
 const FONTS = [
-  {id:'plex',      label:'IBM Plex Sans (default)', family:"'IBM Plex Sans', sans-serif"},
-  {id:'inter',     label:'Inter',                   family:"'Inter', sans-serif"},
+  {id:'inter',     label:'Inter (default)',        family:"'Inter', sans-serif"},
+  {id:'plex',      label:'IBM Plex Sans',           family:"'IBM Plex Sans', sans-serif"},
   {id:'source',    label:'Source Sans 3',           family:"'Source Sans 3', sans-serif"},
   {id:'work',      label:'Work Sans',               family:"'Work Sans', sans-serif"},
   {id:'nunito',    label:'Nunito Sans',             family:"'Nunito Sans', sans-serif"},
@@ -2095,7 +2236,7 @@ const FONTS = [
   {id:'georgia',   label:'Georgia',                 family:"Georgia, 'Times New Roman', serif"},
   {id:'space',     label:'Space Grotesk',           family:"'Space Grotesk', sans-serif"},
 ];
-let activeFontId = 'plex';
+let activeFontId = 'inter';
 function renderFontMenu(){
   const menu = document.getElementById('fontMenu');
   menu.innerHTML = FONTS.map(f=>`
@@ -2160,26 +2301,38 @@ document.getElementById('fullscreenToggle').onclick = ()=>{ isFullscreen() ? exi
 
 /* ================= profile & settings modal ================= */
 const settingsOverlay = document.getElementById('settingsOverlay');
-function openSettings(){ settingsOverlay.classList.add('open'); }
+function populateOptionalSelect(){
+  const sel = document.getElementById('setOptional');
+  sel.innerHTML = OPTIONAL_SUBJECTS.map(o=>`<option>${o}</option>`).join('');
+}
+populateOptionalSelect();
+function openSettings(){ applyGenderPicker(); settingsOverlay.classList.add('open'); }
 document.getElementById('profileTrigger').onclick = openSettings;
 document.getElementById('railProfileBtn').onclick = openSettings;
 document.getElementById('closeSettings').onclick = ()=> settingsOverlay.classList.remove('open');
 settingsOverlay.addEventListener('click', (e)=>{ if(e.target===settingsOverlay) settingsOverlay.classList.remove('open'); });
 document.getElementById('setLightBtn').onclick = ()=>{ isDark=false; applyDarkMode(); };
 document.getElementById('setDarkBtn').onclick = ()=>{ isDark=true; applyDarkMode(); };
-document.getElementById('saveSettings').onclick = ()=>{
+document.getElementById('setGenderMaleBtn').onclick = ()=>{ userGender='male'; localStorage.setItem('gb3_gender','male'); applyGenderPicker(); renderAvatars(); };
+document.getElementById('setGenderFemaleBtn').onclick = ()=>{ userGender='female'; localStorage.setItem('gb3_gender','female'); applyGenderPicker(); renderAvatars(); };
+document.getElementById('saveSettings').onclick = async ()=>{
   const name = document.getElementById('setName').value.trim() || 'Aarav Mehta';
   const year = document.getElementById('setYear').value;
-  document.querySelectorAll('.profile-name, .rail-bottom-text b').forEach(el=> el.textContent = name);
-  document.querySelectorAll('.profile-sub, .rail-bottom-text span').forEach(el=> el.textContent = year);
+  const mobile = document.getElementById('setMobile').value.trim();
+  const email = document.getElementById('setEmail').value.trim();
+  const optional = document.getElementById('setOptional').value;
+  document.querySelectorAll('#topName, #railName').forEach(el=> el.textContent = name);
+  document.querySelectorAll('#topExam, #railExam').forEach(el=> el.textContent = year);
   settingsOverlay.classList.remove('open');
-  flashToast('Profile updated.');
+  const ok = await saveProfileToSupabase({name, target_exam: year, mobile, email, optional_subject: optional, gender: userGender});
+  flashToast(ok ? 'Profile updated and synced to Supabase.' : 'Profile updated locally (connect Supabase to sync).');
 };
 document.getElementById('closeModule').onclick = ()=>{
   moduleOverlay.classList.remove('open','wide-open');
   if(fgRAF){ cancelAnimationFrame(fgRAF); fgRAF=null; }
+  stopQTimer();
 };
-moduleOverlay.addEventListener('click', (e)=>{ if(e.target===moduleOverlay){ moduleOverlay.classList.remove('open','wide-open'); if(fgRAF){ cancelAnimationFrame(fgRAF); fgRAF=null; } } });
+moduleOverlay.addEventListener('click', (e)=>{ if(e.target===moduleOverlay){ moduleOverlay.classList.remove('open','wide-open'); if(fgRAF){ cancelAnimationFrame(fgRAF); fgRAF=null; } stopQTimer(); } });
 
 /* ================= close daybook (with caution warning) ================= */
 const closeDaybookOverlay = document.getElementById('closeDaybookOverlay');
@@ -2187,8 +2340,6 @@ document.getElementById('closeCloseDaybook').onclick = ()=> closeDaybookOverlay.
 document.getElementById('cancelCloseDaybook').onclick = ()=> closeDaybookOverlay.classList.remove('open');
 closeDaybookOverlay.addEventListener('click', (e)=>{ if(e.target===closeDaybookOverlay) closeDaybookOverlay.classList.remove('open'); });
 document.getElementById('confirmCloseDaybook').onclick = ()=>{
-  // wipe today's live task list to start a fresh register — completed-task history that already
-  // fed the Gratitude Vault stays intact there since it's tracked by completedAt, not by this list
   tasks = [];
   activeCat = 'GS';
   closeDaybookOverlay.classList.remove('open');
@@ -2224,7 +2375,7 @@ document.getElementById('copyReferralBtn').onclick = ()=>{
   flashToast('Referral link copied.');
 };
 
-/* ================= day title (the old 4AM close-countdown ribbon has been removed from the UI) ================= */
+/* ================= day title ================= */
 function updateCountdown(){
   const now = new Date();
   document.getElementById('todayTitle').textContent = now.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
@@ -2236,19 +2387,339 @@ function render(){
   renderNav();
   renderTabStrip();
   renderTasks();
+  renderAvatars();
 }
-
 render();
 renderModules();
 updateCountdown();
 applyDarkMode();
 updateFsIcon();
+applyGenderPicker();
 
-// Load Supabase tasks dynamically (and push today's planned tasks once loaded)
-loadTasks().then(() => {
-  pullTodaysPlanIntoDaybook();
-});
+initSupabase();
+loadProfileIntoUI();
+loadTasks().then(() => pullTodaysPlanIntoDaybook());
+</script>
 
+<script>
+/* =====================================================================
+   Shared question-runner engine, used by CSAT / Pre PYQs / Mains PYQs.
+   Each caller supplies: a list of MCQ (or subjective) items, a title,
+   and whether it's graded (MCQ, timed) or a read-question-see-solution
+   flow (Mains PYQs). Falls back to small local placeholder question
+   sets when Supabase has no rows yet for that filter. */
+let qState = null; // {items, idx, answers[], times[], startedAt, hindi, graded, onFinish}
+let qTimerInt = null;
+
+function stopQTimer(){ if(qTimerInt){ clearInterval(qTimerInt); qTimerInt = null; } }
+
+function navCrumb(steps) {
+  return `<div class="crumb">${steps.map((s,i)=>`${i>0?'<span class="sep">/</span>':''}<button data-i="${i}">${s.label}</button>`).join('')}</div>`;
+}
+function wireCrumb(root, steps){
+  root.querySelectorAll('.crumb button').forEach((b,i)=> { if(steps[i]) b.onclick = steps[i].go; });
+}
+
+function startQRunner(items, opts={}){
+  stopQTimer();
+  qState = {
+    items, idx:0, answers: new Array(items.length).fill(null),
+    times: new Array(items.length).fill(0), qStart: Date.now(), lastIdx: 0,
+    hindi:false, graded: opts.graded !== false, title: opts.title||'Practice', onExit: opts.onExit||null
+  };
+  renderQRunner();
+}
+function qElapsedSeconds(){ return Math.floor((Date.now()-qState.qStart)/1000); }
+function fmtTime(s){ const m = Math.floor(s/60), r = s%60; return `${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`; }
+
+function renderQRunner(){
+  const root = document.getElementById('qRunnerRoot');
+  if(!root || !qState) return;
+  stopQTimer();
+
+  // Reset the timer for this specific question if we moved to a new one
+  if(qState.lastIdx !== qState.idx) {
+      qState.qStart = Date.now();
+      qState.lastIdx = qState.idx;
+  }
+
+  if(qState.idx >= qState.items.length){
+    const correct = qState.answers.filter((a,i)=> qState.graded && a===qState.items[i].correct_index).length;
+    const totalTime = qState.times.reduce((s,t)=>s+t,0);
+    root.innerHTML = `
+      <div class="q-summary">
+        <div class="q-progress">${qState.title} — complete</div>
+        ${qState.graded ? `<div class="big">${correct} / ${qState.items.length}</div><div class="sub">correct — total time ${fmtTime(totalTime)}</div>` : `<div class="big">${qState.items.length}</div><div class="sub">questions reviewed — total time ${fmtTime(totalTime)}</div>`}
+        <button class="modal-submit" id="qFinishBtn" style="max-width:260px; margin:16px auto 0;">Done</button>
+      </div>`;
+    document.getElementById('qFinishBtn').onclick = ()=>{ qState.onExit && qState.onExit(correct, qState.items.length); };
+    return;
+  }
+
+  const q = qState.items[qState.idx];
+  const text = qState.hindi && q.question_hi ? q.question_hi : (q.question_en || q.question);
+  const isMCQ = Array.isArray(q.options) && q.options.length;
+
+  root.innerHTML = `
+    <div class="qrunner-top">
+      <span class="q-progress">Question ${qState.idx+1} / ${qState.items.length}</span>
+      <div style="display:flex; gap:8px; align-items:center;">
+        ${(q.question_hi) ? `<button class="hindi-toggle${qState.hindi?' on':''}" id="hindiToggleBtn">${svg('translate','style="width:14px;height:14px;"')} ${qState.hindi?'हिंदी':'English'}</button>` : ''}
+        <span class="qrunner-timer" id="qTimerLabel">${svg('clock','style="width:14px;height:14px;"')} 00:00</span>
+      </div>
+    </div>
+    <div class="q-card">
+      <div class="q-text">${text}</div>
+      ${isMCQ ? `<div class="q-options">${q.options.map((o,i)=>`
+        <button class="q-opt" data-i="${i}"><span class="q-opt-letter">${String.fromCharCode(65+i)}</span><span>${o}</span></button>`).join('')}</div>` : `
+        ${q.solution ? `<button class="pyq-reveal-btn" id="pyqRevealBtn2">Reveal solution</button><div class="pyq-solution" id="pyqSolutionBox">${q.solution}</div>` : ''}`}
+    </div>
+    <div class="q-nav">
+      ${qState.idx>0 ? `<button class="modal-back" id="qPrevBtn">Previous</button>` : ''}
+      <button class="modal-submit" id="qNextBtn">${qState.idx===qState.items.length-1 ? 'Finish' : 'Next'}</button>
+    </div>`;
+
+  const hb = document.getElementById('hindiToggleBtn');
+  if(hb) hb.onclick = ()=>{ qState.hindi = !qState.hindi; renderQRunner(); };
+
+  if(isMCQ){
+    root.querySelectorAll('.q-opt').forEach(btn=>{
+      btn.onclick = ()=>{
+        qState.answers[qState.idx] = Number(btn.dataset.i);
+        root.querySelectorAll('.q-opt').forEach(b=> b.classList.remove('sel'));
+        btn.classList.add('sel');
+      };
+    });
+  } else {
+    const rb = document.getElementById('pyqRevealBtn2');
+    if(rb) rb.onclick = ()=>{ document.getElementById('pyqSolutionBox').classList.add('show'); rb.style.display='none'; };
+  }
+
+  const prevBtn = document.getElementById('qPrevBtn');
+  if(prevBtn) prevBtn.onclick = ()=>{ qState.times[qState.idx]+=qElapsedSeconds(); qState.idx--; renderQRunner(); };
+  document.getElementById('qNextBtn').onclick = ()=>{ qState.times[qState.idx]+=qElapsedSeconds(); qState.idx++; renderQRunner(); };
+
+  qTimerInt = setInterval(()=>{
+    const currentElapsed = Math.floor((Date.now() - qState.qStart)/1000);
+    const lbl = document.getElementById('qTimerLabel');
+    if(lbl) lbl.innerHTML = `${svg('clock','style="width:14px;height:14px;"')} ${fmtTime(currentElapsed)}`;
+  }, 1000);
+}
+
+/* placeholder question generator — used until Supabase has real rows for a filter */
+function placeholderMCQs(n, topic){
+  return Array.from({length:n}, (_,i)=>({
+    question_en:`[Sample] ${topic} — question ${i+1}. Replace with real content from Supabase (table: csat_questions / prelims_pyqs).`,
+    question_hi:`[नमूना] ${topic} — प्रश्न ${i+1}। इसे Supabase से वास्तविक सामग्री से बदलें।`,
+    options:['Option A','Option B','Option C','Option D'],
+    correct_index:0
+  }));
+}
+function placeholderSubjective(n, label){
+  return Array.from({length:n}, (_,i)=>({
+    question:`[Sample] ${label} — question ${i+1}. Replace with the real question text from Supabase (table: mains_pyqs).`,
+    solution:`[Sample solution] Upload the model answer for this question to the mains_pyqs table's "solution" column.`
+  }));
+}
+
+/* ===================== CSAT drill: Section → Topic → Practice Set → Level → Questions ===================== */
+const CSAT_TOPICS = {
+  Quant: ["Number System","Ratio and Proportion","Mixture and Alligation","Problems Based on Ages","Average","Percentage","Profit and Loss","Time, Speed and Distance","Trains, Boats and Streams","Time and Work","Pipes and Cisterns","Permutation and combination","Probability","Data Interpretation"],
+  "Logical Reasoning": ["Number Series","Missing terms","Clocks","Calendar","Cubes and Dice","Blood relation","Direction sense","Coding Decoding","Number ranking","Mathematical operation","Venn Diagrams","Paper cutting and folding","Mirror and water images","Embedded figure","Seating arrangements","Data sufficiency","Syllogism","Puzzles"]
+};
+const CSAT_PRACTICE_SETS = 5;
+const CSAT_LEVELS = 5;
+let csatNav = {view:'section'};
+
+function csatCrumbSteps(){
+  const c = [{label:'CSAT', go:()=>{ csatNav={view:'section'}; renderCsatDrill(); }}];
+  if(csatNav.section) c.push({label:csatNav.section, go:()=>{ csatNav={view:'topic', section:csatNav.section}; renderCsatDrill(); }});
+  if(csatNav.topic) c.push({label:csatNav.topic, go:()=>{ csatNav={view:'practiceset', section:csatNav.section, topic:csatNav.topic}; renderCsatDrill(); }});
+  if(csatNav.practiceSet) c.push({label:`Set ${csatNav.practiceSet}`, go:()=>{ csatNav={view:'level', section:csatNav.section, topic:csatNav.topic, practiceSet:csatNav.practiceSet}; renderCsatDrill(); }});
+  return c;
+}
+function csatCrumb(){
+  const c = csatCrumbSteps();
+  return `<div class="crumb">${c.map((s,i)=>`${i>0?'<span class="sep">/</span>':''}<button data-i="${i}">${s.label}</button>`).join('')}</div>`;
+}
+
+async function renderCsatDrill(){
+  const root = document.getElementById('csatDrillRoot');
+  if(!root) return;
+  stopQTimer();
+
+  if(csatNav.view==='section'){
+    root.innerHTML = `<div class="drill-grid">${Object.keys(CSAT_TOPICS).map(s=>`
+      <button class="drill-card" data-s="${s}"><h5>${s}</h5><span class="dsub">${CSAT_TOPICS[s].length} topics</span></button>`).join('')}</div>`;
+    root.querySelectorAll('.drill-card').forEach(el=> el.onclick = ()=>{ csatNav={view:'topic', section:el.dataset.s}; renderCsatDrill(); });
+    return;
+  }
+
+  if(csatNav.view==='topic'){
+    root.innerHTML = csatCrumb() + `<div class="drill-grid">${CSAT_TOPICS[csatNav.section].map(t=>`
+      <button class="drill-card" data-t="${t}"><h5>${t}</h5><span class="dsub">${CSAT_PRACTICE_SETS} practice sets</span></button>`).join('')}</div>`;
+    wireCrumb(root, csatCrumbSteps());
+    root.querySelectorAll('.drill-card').forEach(el=> el.onclick = ()=>{
+      csatNav = {view:'practiceset', section:csatNav.section, topic:el.dataset.t};
+      renderCsatDrill();
+    });
+    return;
+  }
+
+  if(csatNav.view==='practiceset'){
+    root.innerHTML = csatCrumb() + `<div class="drill-grid">${Array.from({length:CSAT_PRACTICE_SETS}, (_,i)=>i+1).map(n=>`
+      <button class="drill-card" data-n="${n}"><h5>Practice Set ${n}</h5><span class="dsub">${CSAT_LEVELS} levels</span></button>`).join('')}</div>`;
+    wireCrumb(root, csatCrumbSteps());
+    root.querySelectorAll('.drill-card').forEach(el=> el.onclick = ()=>{
+      csatNav = {view:'level', section:csatNav.section, topic:csatNav.topic, practiceSet:Number(el.dataset.n)};
+      renderCsatDrill();
+    });
+    return;
+  }
+
+  if(csatNav.view==='level'){
+    root.innerHTML = csatCrumb() + `<div class="drill-grid">${Array.from({length:CSAT_LEVELS}, (_,i)=>i+1).map(n=>`
+      <button class="drill-card" data-n="${n}"><h5>Level ${n}</h5><span class="dsub">Attempt questions</span></button>`).join('')}</div>`;
+    wireCrumb(root, csatCrumbSteps());
+    root.querySelectorAll('.drill-card').forEach(el=> el.onclick = async ()=>{
+      const level = Number(el.dataset.n);
+      const section = csatNav.section, topic = csatNav.topic, practiceSet = csatNav.practiceSet;
+      // Backend: fetch from Supabase `csat_questions`, filtered to this exact
+      // section / topic / practice set / level combination.
+      const rows = await fetchFromSupabase('csat_questions', {section, topic, practice_no:practiceSet, level});
+      const items = (rows && rows.length) ? rows : placeholderMCQs(5, `${topic} · Set ${practiceSet} · Level ${level}`);
+      root.innerHTML = `<div id="qRunnerRoot"></div>`;
+      startQRunner(items, {
+        title:`${topic} — Set ${practiceSet} · Level ${level}`,
+        graded:true,
+        onExit:()=>{ csatNav={view:'level', section, topic, practiceSet}; renderCsatDrill(); }
+      });
+    });
+    return;
+  }
+}
+
+
+/* ===================== Pre PYQs drill ===================== */
+const PRELIM_SUBJECTS = ["Polity","Economy","Geography","History","Environment & Ecology","Science & Technology","Current Affairs"];
+const PRELIM_SUBTOPICS = {
+  "Polity":["Constitutional Framework","Fundamental Rights & DPSP","Union & State Executive","Judiciary","Local Government"],
+  "Economy":["National Income","Banking & Finance","Fiscal Policy","External Sector","Agriculture Economy"],
+  "Geography":["Physical Geography","Indian Geography","World Geography","Climatology","Economic Geography"],
+  "History":["Ancient India","Medieval India","Modern India","Freedom Struggle","Post-Independence"],
+  "Environment & Ecology":["Ecosystems","Biodiversity","Climate Change","International Bodies","Pollution & Policy"],
+  "Science & Technology":["Space Tech","Biotechnology","IT & Computers","Defence Tech","Health Science"],
+  "Current Affairs":["National","International","Schemes","Reports & Indices","Awards & Persons"]
+};
+
+const PRE_YEARS = Array.from({length:14}, (_,i)=> 2026-i);
+let preNav = {view:'home'};
+let preProgress = {}; 
+
+async function renderPreDrill(){
+  const root = document.getElementById('preDrillRoot');
+  if(!root) return;
+  stopQTimer();
+
+  if(preNav.view==='home'){
+    root.innerHTML = `
+      <h4 style="font-family:var(--font-display); font-size:16px; margin-bottom:12px;">Browse Subject-wise</h4>
+      <div class="drill-grid" style="margin-bottom:24px;">${PRELIM_SUBJECTS.map(s=>{
+        const pct = Math.round((preProgress[s]||Math.random()*0.6)*100);
+        preProgress[s] = pct/100;
+        return `<button class="drill-card" data-s="${s}"><h5>${s}</h5><span class="dsub">${PRELIM_SUBTOPICS[s].length} subtopics</span><div class="bar"><i style="width:${pct}%"></i></div><span class="dsub">${pct}% attempted</span></button>`;
+      }).join('')}</div>
+      <h4 style="font-family:var(--font-display); font-size:16px; margin-bottom:12px;">Browse Year-wise</h4>
+      <div class="drill-grid">${PRE_YEARS.map(y=>`
+        <button class="drill-card" data-y="${y}"><h5>${y}</h5><span class="dsub">Attempt full paper</span></button>`).join('')}</div>
+    `;
+    root.querySelectorAll('.drill-card[data-s]').forEach(el=> el.onclick = ()=>{ preNav={view:'subtopic', subject:el.dataset.s}; renderPreDrill(); });
+    root.querySelectorAll('.drill-card[data-y]').forEach(el=> el.onclick = async ()=>{
+      const year = Number(el.dataset.y);
+      const rows = await fetchFromSupabase('prelims_pyqs', {year});
+      const items = (rows && rows.length) ? rows : placeholderMCQs(5, `Prelims ${year}`);
+      root.innerHTML = `<div id="qRunnerRoot"></div>`;
+      startQRunner(items, {title:`Prelims ${year}`, graded:true, onExit:()=>{ preNav={view:'home'}; renderPreDrill(); }});
+    });
+    return;
+  }
+  
+  if(preNav.view==='subtopic'){
+    root.innerHTML = navCrumb([{label:'Pre PYQs', go:()=>{preNav={view:'home'}; renderPreDrill();}}]) + `<div class="drill-grid">${PRELIM_SUBTOPICS[preNav.subject].map(t=>`
+      <button class="drill-card" data-t="${t}"><h5>${t}</h5><span class="dsub">Attempt questions</span></button>`).join('')}</div>`;
+    wireCrumb(root, [{go:()=>{ preNav={view:'home'}; renderPreDrill(); }}]);
+    
+    root.querySelectorAll('.drill-card').forEach(el=> el.onclick = async ()=>{
+      const subtopic = el.dataset.t;
+      const rows = await fetchFromSupabase('prelims_pyqs', {subject:preNav.subject, subtopic}); 
+      const items = (rows && rows.length) ? rows : placeholderMCQs(5, `${preNav.subject} · ${subtopic}`);
+      root.innerHTML = `<div id="qRunnerRoot"></div>`;
+      startQRunner(items, {title:`${subtopic}`, graded:true, onExit:()=>{ preNav={view:'subtopic', subject:preNav.subject}; renderPreDrill(); }});
+    });
+  }
+}
+
+
+/* ===================== Mains PYQs drill ===================== */
+const MAINS_PAPERS = ["GS1","GS2","GS3","GS4"];
+const MAINS_TOPICS = {
+  "GS1": ["Art & Culture", "Modern History", "Geography", "Indian Society"],
+  "GS2": ["Polity & Constitution", "Governance", "Social Justice", "International Relations"],
+  "GS3": ["Economy", "Agriculture", "Science & Tech", "Environment", "Internal Security"],
+  "GS4": ["Ethics & Human Interface", "Attitude", "Aptitude", "Case Studies"]
+};
+const MAINS_YEARS = Array.from({length:14}, (_,i)=> 2026-i); 
+let mainsNav = {view:'home'};
+
+async function renderMainsDrill(){
+  const root = document.getElementById('mainsDrillRoot');
+  if(!root) return;
+  stopQTimer();
+
+  if(mainsNav.view==='home'){
+    root.innerHTML = `
+      <h4 style="font-family:var(--font-display); font-size:16px; margin-bottom:12px;">Browse Subject-wise</h4>
+      <div class="drill-grid" style="margin-bottom:24px;">${MAINS_PAPERS.map(p=>`
+        <button class="drill-card" data-p="${p}"><h5>${p}</h5><span class="dsub">Browse by topic</span></button>`).join('')}</div>
+      <h4 style="font-family:var(--font-display); font-size:16px; margin-bottom:12px;">Browse Year-wise</h4>
+      <div class="drill-grid">${MAINS_YEARS.map(y=>`
+        <button class="drill-card" data-y="${y}"><h5>${y}</h5><span class="dsub">Browse by paper</span></button>`).join('')}</div>
+    `;
+    root.querySelectorAll('.drill-card[data-p]').forEach(el=> el.onclick = ()=>{ mainsNav={view:'topic', paper:el.dataset.p}; renderMainsDrill(); });
+    root.querySelectorAll('.drill-card[data-y]').forEach(el=> el.onclick = ()=>{ mainsNav={view:'year_paper', year:Number(el.dataset.y)}; renderMainsDrill(); });
+    return;
+  }
+  
+  if(mainsNav.view==='topic'){
+    root.innerHTML = navCrumb([{label:'Mains PYQs', go:()=>{mainsNav={view:'home'}; renderMainsDrill();}}]) + `<div class="drill-grid">${MAINS_TOPICS[mainsNav.paper].map(t=>`
+      <button class="drill-card" data-t="${t}"><h5>${t}</h5><span class="dsub">Questions & solutions</span></button>`).join('')}</div>`;
+    wireCrumb(root, [{go:()=>{ mainsNav={view:'home'}; renderMainsDrill(); }}]);
+    
+    root.querySelectorAll('.drill-card').forEach(el=> el.onclick = async ()=>{
+      const topic = el.dataset.t;
+      const rows = await fetchFromSupabase('mains_pyqs', {paper:mainsNav.paper, topic}); 
+      const items = (rows && rows.length) ? rows : placeholderSubjective(4, `${mainsNav.paper} · ${topic}`);
+      root.innerHTML = `<div id="qRunnerRoot"></div>`;
+      startQRunner(items, {title:`${mainsNav.paper} — ${topic}`, graded:false, onExit:()=>{ mainsNav={view:'topic', paper:mainsNav.paper}; renderMainsDrill(); }});
+    });
+    return;
+  }
+  
+  if(mainsNav.view==='year_paper'){
+    root.innerHTML = navCrumb([{label:'Mains PYQs', go:()=>{mainsNav={view:'home'}; renderMainsDrill();}}]) + `<div class="drill-grid">${MAINS_PAPERS.map(p=>`
+      <button class="drill-card" data-p="${p}"><h5>${p}</h5><span class="dsub">Questions & solutions</span></button>`).join('')}</div>`;
+    wireCrumb(root, [{go:()=>{ mainsNav={view:'home'}; renderMainsDrill(); }}]);
+    
+    root.querySelectorAll('.drill-card').forEach(el=> el.onclick = async ()=>{
+      const paper = el.dataset.p;
+      const rows = await fetchFromSupabase('mains_pyqs', {paper, year:mainsNav.year}); 
+      const items = (rows && rows.length) ? rows : placeholderSubjective(4, `${paper} · ${mainsNav.year}`);
+      root.innerHTML = `<div id="qRunnerRoot"></div>`;
+      startQRunner(items, {title:`${paper} — ${mainsNav.year}`, graded:false, onExit:()=>{ mainsNav={view:'year_paper', year:mainsNav.year}; renderMainsDrill(); }});
+    });
+    return;
+  }
+}
 </script>
 </body>
 </html>
