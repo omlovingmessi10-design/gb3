@@ -2232,6 +2232,12 @@ function updateCountdown(){
 setInterval(updateCountdown, 30000);
 
 /* ================= master render ================= */
+function render(){
+  renderNav();
+  renderTabStrip();
+  renderTasks();
+}
+
 render();
 renderModules();
 updateCountdown();
