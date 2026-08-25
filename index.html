@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Space Desk — Login</title>
@@ -493,7 +492,7 @@ function switchAuthView(view) {
 
 
 /* =========================================================
-   DATABASE: REGISTER FLOW
+   DATABASE: REGISTER FLOW (SUPABASE AUTH)
 ========================================================= */
 async function processRegister() {
     const mobile = document.getElementById("reg-mobile").value.trim();
@@ -521,15 +520,21 @@ async function processRegister() {
 
     btn.innerText = "Registering..."; btn.disabled = true;
 
+    // MAP TO SUPABASE EMAIL/PASSWORD SYSTEM
+    const email = `${mobile}@spacedesk.local`;
+    const password = `${pin}-GB3-secure`; 
+
     try {
-        // Insert into the 'profiles' table using Mobile Number as the ID
-        const { data, error } = await db.from('profiles').insert([
-            { id: mobile, mobile: mobile, name: name, pin: pin }
-        ]);
+        const { data, error } = await db.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: { display_name: name, mobile: mobile }
+            }
+        });
 
         if (error) {
-            if(error.code === '23505') errorDiv.innerText = "Mobile number is already registered.";
-            else errorDiv.innerText = "Registration failed. Try again.";
+            errorDiv.innerText = error.message;
             errorDiv.style.display = "block";
         } else {
             successDiv.innerText = "Registration successful! You can now log in.";
@@ -549,9 +554,8 @@ async function processRegister() {
     btn.innerText = "Register Account"; btn.disabled = false;
 }
 
-
 /* =========================================================
-   DATABASE: LOGIN FLOW
+   DATABASE: LOGIN FLOW (SUPABASE AUTH)
 ========================================================= */
 async function processLogin() {
     const mobile = document.getElementById("login-mobile").value.trim();
@@ -568,20 +572,21 @@ async function processLogin() {
 
     btn.innerText = "Verifying..."; btn.disabled = true;
 
-    try {
-        // Validate against the 'profiles' table using mobile as ID
-        const { data, error } = await db.from('profiles')
-            .select('*')
-            .eq('id', mobile)
-            .eq('pin', pin)
-            .single();
+    const email = `${mobile}@spacedesk.local`;
+    const password = `${pin}-GB3-secure`;
 
-        if (error || !data) {
+    try {
+        const { data, error } = await db.auth.signInWithPassword({
+            email: email,
+            password: password,
+        });
+
+        if (error) {
             errorDiv.innerText = "Invalid mobile number or PIN.";
             errorDiv.style.display = "block";
         } else {
-            // Store credentials exactly how the dashboard expects them
-            localStorage.setItem("gb3_user_id", data.id);
+            // Supabase automatically saves the secure JWT session in localStorage.
+            // We just need to pass the URL/KEY so the dashboard can use them.
             localStorage.setItem("gb3_supa_url", SUPABASE_URL);
             localStorage.setItem("gb3_supa_key", SUPABASE_KEY);
             
@@ -594,7 +599,6 @@ async function processLogin() {
 
     btn.innerText = "Enter Arena"; btn.disabled = false;
 }
-
 
 /* =========================================================
    COSMOS ENGINE SCRIPT (ANIMATIONS & QUOTES)
