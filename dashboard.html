@@ -601,9 +601,6 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
 .pyq-solution{background:var(--surface); border:1px dashed var(--rule-strong); border-radius:var(--radius-s); padding:12px; margin-top:10px; font-size:13px; line-height:1.6; color:var(--ink-soft); display:none;}
 .pyq-solution.show{display:block;}
 .pyq-reveal-btn{font-size:12px; font-weight:600; color:var(--navy-bright); background:none; border:1px solid var(--rule); border-radius:100px; padding:6px 12px; margin-top:8px;}
-.supa-status{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-family:var(--font-mono); padding:4px 10px; border-radius:100px; border:1px solid var(--rule);}
-.supa-status.connected{color:var(--sage); border-color:var(--sage);}
-.supa-status.off{color:var(--ink-faint);}
 </style>
 </head>
 <body>
@@ -701,7 +698,7 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
   <div class="modal" id="settingsModal">
     <button class="modal-close" id="closeSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <h3>Profile &amp; settings</h3>
-    <p class="sub">Kept for this session, and synced to Supabase once connected. <span class="supa-status off" id="supaStatusChip">Supabase: not connected</span></p>
+    <p class="sub">Kept in this browser for now — hook this up to your own backend whenever you're ready.</p>
     <div class="field"><label>Name</label><input type="text" id="setName" value="Aarav Mehta"></div>
     <div class="field"><label>Email</label><input type="text" id="setEmail" value="aarav.mehta@example.com"></div>
     <div class="field"><label>Mobile number</label><input type="tel" id="setMobile" placeholder="e.g. +91 98765 43210"></div>
@@ -728,31 +725,6 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
       <label class="check-row"><input type="checkbox"> Planning Ahead due-today alert</label>
     </div>
     <button class="modal-submit" id="saveSettings">Save changes</button>
-    <button class="modal-back" id="openSupabaseSetup" type="button" style="margin-top:10px;">Connect Supabase</button>
-  </div>
-</div>
-
-<!-- ===== Supabase connect modal ===== -->
-<div class="overlay" id="supabaseOverlay">
-  <div class="modal" id="supabaseModal">
-    <button class="modal-close" id="closeSupabase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-    <h3>Connect Supabase</h3>
-    <p class="sub">Paste your project URL and anon/public API key. This is stored locally in your browser and used to read/write your profile, tasks and question banks.</p>
-    <div class="field"><label>Project URL</label><input type="text" id="supaUrlInput" placeholder="https://xxxxx.supabase.co"></div>
-    <div class="field"><label>Anon / public API key</label><input type="text" id="supaKeyInput" placeholder="eyJhbGciOi..."></div>
-    <div class="info-block">
-      <b>Expected tables (create these in Supabase, we'll wire up more as you upload data):</b>
-      <table class="mini-table">
-        <tr><th>Table</th><th>Purpose</th></tr>
-        <tr><td>profiles</td><td>id, name, email, mobile, target_exam, optional_subject, gender</td></tr>
-        <tr><td>tasks</td><td>id, title, cat, done, completed_at, themes</td></tr>
-        <tr><td>csat_questions</td><td>section, topic, practice_no, level, question_en, question_hi, options, correct_index</td></tr>
-        <tr><td>prelims_pyqs</td><td>subject, subtopic, year, question_en, question_hi, options, correct_index</td></tr>
-        <tr><td>mains_pyqs</td><td>paper (GS1-4), year, question, solution, topic</td></tr>
-      </table>
-    </div>
-    <button class="modal-submit" id="saveSupabaseBtn">Save &amp; connect</button>
-    <button class="modal-back" id="disconnectSupabaseBtn" type="button">Disconnect</button>
   </div>
 </div>
 
@@ -906,104 +878,6 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-/* ================= Supabase integration ================= */
-let supa = null;
-let SUPA_URL = localStorage.getItem('gb3_supa_url') || '';
-let SUPA_KEY = localStorage.getItem('gb3_supa_key') || '';
-let currentUserId = localStorage.getItem('gb3_user_id');
-
-// If no user is logged in, kick them back to the login page
-if (!currentUserId) {
-    window.location.href = "index.html"; 
-} 
-
-function initSupabase(){
-  if(SUPA_URL && SUPA_KEY && window.supabase){
-    try{ supa = window.supabase.createClient(SUPA_URL, SUPA_KEY); }
-    catch(e){ supa = null; }
-  } else { supa = null; }
-  updateSupaStatusChip();
-}
-function updateSupaStatusChip(){
-  const chip = document.getElementById('supaStatusChip');
-  if(!chip) return;
-  if(supa){ chip.textContent = 'Supabase: connected'; chip.classList.add('connected'); chip.classList.remove('off'); }
-  else { chip.textContent = 'Supabase: not connected'; chip.classList.remove('connected'); chip.classList.add('off'); }
-}
-
-async function fetchProfileFromSupabase(){
-  if(!supa || !currentUserId) return null;
-  try{
-    const { data, error } = await supa.from('profiles').select('*').eq('id', currentUserId).single();
-    if(error || !data) return null;
-    return data;
-  }catch(e){ return null; }
-}
-async function saveProfileToSupabase(profile){
-  if(!supa || !currentUserId) return false;
-  try{
-    const { error } = await supa.from('profiles').upsert({ id: currentUserId, ...profile });
-    return !error;
-  }catch(e){ return false; }
-}
-
-async function fetchFromSupabase(table, filters={}){
-  if(!supa) return null;
-  try{
-    let q = supa.from(table).select('*');
-    Object.entries(filters).forEach(([k,v])=>{ q = q.eq(k, v); });
-    const { data, error } = await q;
-    if(error) return null;
-    return data;
-  }catch(e){ return null; }
-}
-
-document.getElementById('openSupabaseSetup').onclick = ()=>{
-  document.getElementById('supaUrlInput').value = SUPA_URL;
-  document.getElementById('supaKeyInput').value = SUPA_KEY;
-  document.getElementById('supabaseOverlay').classList.add('open');
-};
-document.getElementById('closeSupabase').onclick = ()=> document.getElementById('supabaseOverlay').classList.remove('open');
-document.getElementById('supabaseOverlay').addEventListener('click', (e)=>{ if(e.target.id==='supabaseOverlay') document.getElementById('supabaseOverlay').classList.remove('open'); });
-document.getElementById('saveSupabaseBtn').onclick = async ()=>{
-  SUPA_URL = document.getElementById('supaUrlInput').value.trim();
-  SUPA_KEY = document.getElementById('supaKeyInput').value.trim();
-  localStorage.setItem('gb3_supa_url', SUPA_URL);
-  localStorage.setItem('gb3_supa_key', SUPA_KEY);
-  initSupabase();
-  document.getElementById('supabaseOverlay').classList.remove('open');
-  flashToast(supa ? 'Connected to Supabase.' : 'Could not connect — check the URL and key.');
-  if(supa){ await loadProfileIntoUI(); loadTasks().then(() => pullTodaysPlanIntoDaybook()); }
-};
-document.getElementById('disconnectSupabaseBtn').onclick = ()=>{
-  SUPA_URL=''; SUPA_KEY='';
-  localStorage.removeItem('gb3_supa_url'); localStorage.removeItem('gb3_supa_key');
-  supa = null;
-  updateSupaStatusChip();
-  document.getElementById('supabaseOverlay').classList.remove('open');
-  flashToast('Supabase disconnected.');
-};
-
-async function loadProfileIntoUI(){
-  const p = await fetchProfileFromSupabase();
-  if(!p) return;
-  if(p.name){
-    document.querySelectorAll('#topName, #railName, #setName').forEach(el=>{
-      if(el.tagName==='INPUT') el.value = p.name; else el.textContent = p.name;
-    });
-  }
-  if(p.target_exam){
-    document.querySelectorAll('#topExam, #railExam').forEach(el=> el.textContent = p.target_exam);
-    const sel = document.getElementById('setYear'); if(sel) sel.value = p.target_exam;
-  }
-  if(p.mobile){ const m = document.getElementById('setMobile'); if(m) m.value = p.mobile; }
-  if(p.email){ const em = document.getElementById('setEmail'); if(em) em.value = p.email; }
-  if(p.optional_subject){ const os = document.getElementById('setOptional'); if(os) os.value = p.optional_subject; }
-  if(p.gender){ userGender = p.gender; localStorage.setItem('gb3_gender', userGender); applyGenderPicker(); renderAvatars(); }
-}
-</script>
 <script>
 /* ================= data ================= */
 const CATEGORIES = [
@@ -1053,23 +927,6 @@ function todayKey(){ const d=new Date(); return d.toISOString().slice(0,10); }
 function offsetDateKey(days){ const d=new Date(); d.setDate(d.getDate()+days); return d.toISOString().slice(0,10); }
 
 let tasks = [];
-async function loadTasks() {
-  if (!supa || !currentUserId) return;
-  
-  // The .eq() part acts as the filter
-  const { data, error } = await supa.from('tasks')
-    .select('*')
-    .eq('user_id', currentUserId) 
-    .order('id', { ascending: true });
-    
-  if (!error && data) {
-    tasks = data.map(t => ({
-      id: t.id, title: t.title, cat: t.cat, done: t.done,
-      completedAt: t.completed_at, themes: t.themes || [], fromPlan: false
-    }));
-    render();
-  }
-}
 
 let nextId = 6;
 let activeCat = "GS";
@@ -1092,7 +949,7 @@ const MODULES = [
     <div class="field"><label>File under</label><select id="planningCat">${CATEGORIES.map(c=>`<option value="${c.id}">${c.label}</option>`).join('')}</select></div>
     <button class="modal-submit" id="planningAddBtn">Add to backlog</button>
     <div id="planningList" style="margin-top:14px;"></div>`},
-  {icon:'quiz', tag:'Graded Quiz · CSAT Pattern Quiz', title:'CSAT', desc:"Quant &amp; Logical Reasoning, topic by topic — questions fetched straight from Supabase.", body:``},
+  {icon:'quiz', tag:'Graded Quiz · CSAT Pattern Quiz', title:'CSAT', desc:"Quant &amp; Logical Reasoning, topic by topic — practice sets and levels, with your own PYQs added in.", body:``},
   {icon:'clock', tag:'EMT · Time Log', title:'Time Log', desc:"Log study vs non-study hours by the block. Kept for 30 days, rolled up into daily, weekly and monthly pie charts.", body:`
     <div class="info-block" id="timeLogSummary"></div>
     <div class="pta-row">
@@ -1104,8 +961,8 @@ const MODULES = [
     <div id="timeLogTable"></div>
     <h4 style="font-family:var(--font-display); font-size:15px; margin:18px 0 6px;">Study vs non-study</h4>
     <div class="pie-row" id="timeLogPies"></div>`},
-  {icon:'book', tag:'EMT · Prelims PYQs', title:'Pre PYQs', desc:"Pick a subject and drill down into subtopics, or attempt full papers year by year — sourced from Supabase.", body:``},
-  {icon:'mains', tag:'EMT · Mains PYQs', title:'Mains PYQs + Solutions', desc:"GS1–GS4, broken down by topic and individual year (2026-2013) — subjective questions with full solutions, sourced from Supabase.", body:``},
+  {icon:'book', tag:'EMT · Prelims PYQs', title:'Pre PYQs', desc:"Pick a subject and drill down into subtopics, or attempt full papers year by year.", body:``},
+  {icon:'mains', tag:'EMT · Mains PYQs', title:'Mains PYQs + Solutions', desc:"GS1–GS4, broken down by topic and individual year (2026-2013) — subjective questions with full solutions.", body:``},
   {icon:'mains', tag:'EMT · Optional PYQs', title:'Optional PYQs', desc:"The same topic-and-year categorised Mains-PYQ engine, scoped to your Optional subject.", body:`
     <div class="info-block">Set a goal like <i>“all questions from the last 5 years on a given topic”</i> and it's divided evenly into daily practice, filed straight into the Daybook.</div>
     <div class="field"><label>Topic</label><input type="text" id="optPlanTopic" placeholder="e.g. Mughal administration"></div>
@@ -1140,16 +997,17 @@ const MODULES = [
   {icon:'stats', tag:'EMT · Statistics', title:'Statistics', desc:"Study hours, CSAT throughput and your weak topics — one long-run view of the preparation.", body:`
     <div id="statsTimeBlock"></div>
     <div id="statsCsatBlock"></div>
+    <div id="statsStudyTrendBlock"></div>
+    <div id="statsCsatTrendBlock"></div>
+    <div id="statsConsistencyBlock"></div>
     <div id="statsDangerBlock"></div>`},
 ];
 
 /* ================= avatar (male/female icon, no photos) =================
    Backend integration note: this should come from the user's registration
-   record — e.g. a `profiles.gender` column in Supabase, set once at
-   sign-up ('male' | 'female'). Until that's wired up, the choice is kept
-   in localStorage and editable from Profile & settings, and
-   loadProfileIntoUI() above already reads p.gender the moment Supabase
-   is connected and a profile row exists. */
+   record once a backend is wired up (a `gender` field set at sign-up:
+   'male' | 'female'). Until then, the choice is kept in localStorage and
+   editable from Profile & settings. */
 let userGender = localStorage.getItem('gb3_gender') || 'male';
 function avatarEmoji(){ return userGender==='female' ? '👩' : '👨'; }
 function renderAvatars(){
@@ -1168,13 +1026,11 @@ function renderNav(){
   const rail = document.getElementById('railTabs');
   rail.innerHTML = `
     <button class="rail-tab" id="railSettingsBtn">${svg('settings')}<span>Profile &amp; settings</span></button>
-    <button class="rail-tab" id="railSupaBtn">${svg('server')}<span>Connect Supabase</span></button>
     <button class="rail-tab danger" id="railCloseDaybookBtn">${svg('lock')}<span>Close your daybook</span></button>
     <button class="rail-tab" id="railFeedbackBtn">${svg('chat')}<span>Feedback</span></button>
     <button class="rail-tab" id="railReferralBtn">${svg('gift')}<span>Refer a friend</span></button>
   `;
   document.getElementById('railSettingsBtn').onclick = ()=>{ openSettings(); closeSidebarOnMobile(); };
-  document.getElementById('railSupaBtn').onclick = ()=>{ document.getElementById('openSupabaseSetup').click(); closeSidebarOnMobile(); };
   document.getElementById('railCloseDaybookBtn').onclick = ()=>{ document.getElementById('closeDaybookOverlay').classList.add('open'); closeSidebarOnMobile(); };
   document.getElementById('railFeedbackBtn').onclick = ()=>{ document.getElementById('feedbackOverlay').classList.add('open'); closeSidebarOnMobile(); };
   document.getElementById('railReferralBtn').onclick = ()=>{ openReferral(); closeSidebarOnMobile(); };
@@ -1249,12 +1105,10 @@ async function toggleDone(id){
   t.done=!t.done;
   t.completedAt = t.done ? todayKey() : null;
   renderTasks(); renderTabStrip();
-  if(supa) await supa.from('tasks').update({ done: t.done, completed_at: t.completedAt }).eq('id', id);
 }
 
 async function deleteTask(id){ 
   tasks = tasks.filter(t=>t.id!==id); openMenuId=null; renderTasks(); renderTabStrip(); 
-  if(supa) await supa.from('tasks').delete().eq('id', id);
 }
 
 function rescheduleTask(id){
@@ -1312,25 +1166,8 @@ document.getElementById('openAdd').onclick = ()=>{
 document.getElementById('closeAdd').onclick = ()=> overlay.classList.remove('open');
 overlay.addEventListener('click', (e)=>{ if(e.target===overlay) overlay.classList.remove('open'); });
 
-async function fileTask(){
-  // user_id is added here
-  const newTask = { user_id: currentUserId, title: pendingTitle, cat: activeCat, done: false, themes: activeCat === 'CA' ? [...selectedThemes] : [] };
-  
-  if (supa) {
-    const { data, error } = await supa.from('tasks').insert([newTask]).select();
-    if (!error && data && data.length > 0) {
-      const savedTask = data[0];
-      tasks.push({ id: savedTask.id, title: savedTask.title, cat: savedTask.cat, done: savedTask.done, themes: savedTask.themes, fromPlan: false });
-    }
-  } else {
-    tasks.push({id:nextId++, title:pendingTitle, cat:activeCat, done:false, themes: activeCat === 'CA' ? [...selectedThemes] : [], fromPlan: false});
-  }
-
-  overlay.classList.remove('open');
-  render();
-  if(activeCat==='CA'){ renderObsidianGraph(); }
-  flashToast("Filed to today's Daybook.");
-}
+function fileTask(){
+  tasks.push({id:nextId++, title:pendingTitle, cat:activeCat, done:false, themes: activeCat === 'CA' ? [...selectedThemes] : [], fromPlan: false});
 
   overlay.classList.remove('open');
   render();
@@ -1694,6 +1531,9 @@ function renderMtaList(){
 function renderStatistics(){
   const timeBlock = document.getElementById('statsTimeBlock');
   const csatBlock = document.getElementById('statsCsatBlock');
+  const studyTrendBlock = document.getElementById('statsStudyTrendBlock');
+  const csatTrendBlock = document.getElementById('statsCsatTrendBlock');
+  const consistencyBlock = document.getElementById('statsConsistencyBlock');
   const dangerBlock = document.getElementById('statsDangerBlock');
   if(!timeBlock) return;
 
@@ -1723,6 +1563,54 @@ function renderStatistics(){
       <div class="stat-row"><span>Today</span><b>${cDay}</b></div>
       <div class="stat-row"><span>This week</span><b>${cWeek}</b></div>
       <div class="stat-row"><span>This month</span><b>${cMonth}</b></div>
+    </div>`;
+
+  /* Study-hour trend — last 14 days, one bar per day */
+  const trendDays = Array.from({length:14}, (_,i)=> offsetDateKey(i-13));
+  const trendBars = trendDays.map(d=>{
+    const t = timeLogTotals(timeLogEntries.filter(e=>e.date===d));
+    return {value: t.study, color:'#4b6b4c'};
+  });
+  const trendLabels = trendDays.map(d=> new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit'}));
+  const avgStudy = trendBars.reduce((s,b)=>s+b.value,0) / trendBars.length;
+  const bestDayIdx = trendBars.reduce((best,b,i)=> b.value>trendBars[best].value ? i : best, 0);
+  studyTrendBlock.innerHTML = `
+    <div class="pta-section">
+      <h4>Study hours — last 14 days</h4>
+      ${svgBarChart(trendBars, trendLabels)}
+      <div class="stat-row" style="border-bottom:none;"><span>Daily average</span><b>${avgStudy.toFixed(1)}h</b></div>
+      <div class="stat-row" style="border-bottom:none;"><span>Best day</span><b>${new Date(trendDays[bestDayIdx]).toLocaleDateString('en-GB',{day:'numeric',month:'short'})} · ${trendBars[bestDayIdx].value.toFixed(1)}h</b></div>
+    </div>`;
+
+  /* CSAT throughput trend — questions solved per logged day */
+  const csatSorted = [...csatSolvedLog].sort((a,b)=> new Date(a.date)-new Date(b.date));
+  const csatSeries = [{key:'csat', color:'#a9781f', points: csatSorted.map((e,i)=>({x:i, y:e.n}))}];
+  const csatLabels = csatSorted.map(e=> new Date(e.date).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit'}));
+  const csatMax = Math.max(10, ...csatSorted.map(e=>e.n)) + 2;
+  csatTrendBlock.innerHTML = `
+    <div class="pta-section">
+      <h4>CSAT throughput trend</h4>
+      <p class="sub" style="margin-bottom:8px;">Questions solved per logged session — rising is good, a flattening line is a signal to pick the pace back up.</p>
+      ${csatSorted.length ? svgLineChart(csatSeries, csatLabels, {yMax:csatMax, yMin:0}) : `<div class="empty-state">No CSAT sessions logged yet.</div>`}
+    </div>`;
+
+  /* Consistency snapshot — how the month's hours split between study and everything else */
+  const monthEntries = timeLogEntries.filter(e=> new Date(e.date)>=monthCutoff);
+  const monthTotals = timeLogTotals(monthEntries);
+  const studiedDays = new Set(monthEntries.filter(e=>e.type==='study' && e.hours>0).map(e=>e.date)).size;
+  consistencyBlock.innerHTML = `
+    <div class="pta-section">
+      <h4>This month's consistency</h4>
+      <div class="pie-row" style="grid-template-columns:auto 1fr; align-items:center; gap:20px;">
+        <div class="pie-card" style="border:none; padding:0; background:none;">
+          ${svgPie(monthTotals.study, monthTotals.nonstudy, '#4b6b4c', '#cac3a9')}
+        </div>
+        <div>
+          <div class="stat-row"><span>Days with study logged</span><b>${studiedDays} / 30</b></div>
+          <div class="stat-row"><span>Total study hours</span><b>${monthTotals.study.toFixed(1)}h</b></div>
+          <div class="stat-row" style="border-bottom:none;"><span>Total non-study hours</span><b>${monthTotals.nonstudy.toFixed(1)}h</b></div>
+        </div>
+      </div>
     </div>`;
 
   const dangerSet = new Set();
@@ -2202,6 +2090,36 @@ function svgLineChart(series, xLabels, opts={}){
   return svg;
 }
 
+/* Simple grouped/stacked-style bar chart — used by Statistics for study-hour trends */
+function svgBarChart(bars, xLabels, opts={}){
+  const width=640, height=200, padL=34, padR=8, padT=10, padB=26;
+  const plotW = width-padL-padR, plotH = height-padT-padB;
+  const yMax = opts.yMax ?? Math.max(1, ...bars.map(b=>b.value));
+  const n = bars.length;
+  const gap = 6;
+  const barW = Math.max(4, (plotW/n) - gap);
+  const Y = v => padT + plotH - (v/yMax)*plotH;
+  let svg = `<svg viewBox="0 0 ${width} ${height}" class="chart-svg" preserveAspectRatio="none">`;
+  for(let g=0; g<=4; g++){
+    const v = yMax*g/4, y = Y(v);
+    svg += `<line x1="${padL}" y1="${y}" x2="${width-padR}" y2="${y}" class="chart-grid"/>`;
+    svg += `<text x="${padL-6}" y="${y+3}" class="chart-axis-label" text-anchor="end">${v.toFixed(v<10?1:0)}</text>`;
+  }
+  bars.forEach((b,i)=>{
+    const x = padL + i*(plotW/n) + gap/2;
+    const y = Y(b.value);
+    const h = (padT+plotH) - y;
+    svg += `<rect x="${x}" y="${y}" width="${barW}" height="${Math.max(0,h)}" rx="2" fill="${b.color || opts.color || '#2e4a82'}"/>`;
+  });
+  xLabels.forEach((lab,i)=>{
+    if(n>10 && i%2!==0) return;
+    const x = padL + i*(plotW/n) + (plotW/n)/2;
+    svg += `<text x="${x}" y="${height-8}" class="chart-axis-label" text-anchor="middle">${lab}</text>`;
+  });
+  svg += `</svg>`;
+  return svg;
+}
+
 function renderPtaScoreChart(){
   const sorted = [...ptaTests].sort((a,b)=> new Date(a.date)-new Date(b.date));
   const hlt = sorted.filter(t=>t.type==='HLT');
@@ -2332,7 +2250,7 @@ document.getElementById('setLightBtn').onclick = ()=>{ isDark=false; applyDarkMo
 document.getElementById('setDarkBtn').onclick = ()=>{ isDark=true; applyDarkMode(); };
 document.getElementById('setGenderMaleBtn').onclick = ()=>{ userGender='male'; localStorage.setItem('gb3_gender','male'); applyGenderPicker(); renderAvatars(); };
 document.getElementById('setGenderFemaleBtn').onclick = ()=>{ userGender='female'; localStorage.setItem('gb3_gender','female'); applyGenderPicker(); renderAvatars(); };
-document.getElementById('saveSettings').onclick = async ()=>{
+document.getElementById('saveSettings').onclick = ()=>{
   const name = document.getElementById('setName').value.trim() || 'Aarav Mehta';
   const year = document.getElementById('setYear').value;
   const mobile = document.getElementById('setMobile').value.trim();
@@ -2341,8 +2259,12 @@ document.getElementById('saveSettings').onclick = async ()=>{
   document.querySelectorAll('#topName, #railName').forEach(el=> el.textContent = name);
   document.querySelectorAll('#topExam, #railExam').forEach(el=> el.textContent = year);
   settingsOverlay.classList.remove('open');
-  const ok = await saveProfileToSupabase({name, target_exam: year, mobile, email, optional_subject: optional, gender: userGender});
-  flashToast(ok ? 'Profile updated and synced to Supabase.' : 'Profile updated locally (connect Supabase to sync).');
+  // Backend integration note: this is where a save-profile call to your
+  // backend would go. For now the profile is kept in this browser only.
+  try{
+    localStorage.setItem('gb3_profile', JSON.stringify({name, target_exam: year, mobile, email, optional_subject: optional, gender: userGender}));
+  }catch(e){}
+  flashToast('Profile updated.');
 };
 document.getElementById('closeModule').onclick = ()=>{
   moduleOverlay.classList.remove('open','wide-open');
@@ -2406,16 +2328,38 @@ function render(){
   renderTasks();
   renderAvatars();
 }
+
+/* Load whatever profile was saved locally last time (see saveSettings above).
+   Backend integration note: swap this for a real profile fetch once a
+   backend is wired up. */
+function loadLocalProfile(){
+  try{
+    const raw = localStorage.getItem('gb3_profile');
+    if(!raw) return;
+    const p = JSON.parse(raw);
+    if(p.name){
+      document.querySelectorAll('#topName, #railName, #setName').forEach(el=>{
+        if(el.tagName==='INPUT') el.value = p.name; else el.textContent = p.name;
+      });
+    }
+    if(p.target_exam){
+      document.querySelectorAll('#topExam, #railExam').forEach(el=> el.textContent = p.target_exam);
+      const sel = document.getElementById('setYear'); if(sel) sel.value = p.target_exam;
+    }
+    if(p.mobile){ const m = document.getElementById('setMobile'); if(m) m.value = p.mobile; }
+    if(p.email){ const em = document.getElementById('setEmail'); if(em) em.value = p.email; }
+    if(p.optional_subject){ const os = document.getElementById('setOptional'); if(os) os.value = p.optional_subject; }
+  }catch(e){}
+}
+
 render();
 renderModules();
 updateCountdown();
 applyDarkMode();
 updateFsIcon();
 applyGenderPicker();
-
-initSupabase();
-loadProfileIntoUI();
-loadTasks().then(() => pullTodaysPlanIntoDaybook());
+loadLocalProfile();
+pullTodaysPlanIntoDaybook();
 </script>
 
 <script>
@@ -2423,8 +2367,8 @@ loadTasks().then(() => pullTodaysPlanIntoDaybook());
    Shared question-runner engine, used by CSAT / Pre PYQs / Mains PYQs.
    Each caller supplies: a list of MCQ (or subjective) items, a title,
    and whether it's graded (MCQ, timed) or a read-question-see-solution
-   flow (Mains PYQs). Falls back to small local placeholder question
-   sets when Supabase has no rows yet for that filter. */
+   flow (Mains PYQs). Falls back to small local sample question sets
+   until real content is loaded from wherever you end up storing it. */
 let qState = null; // {items, idx, answers[], times[], startedAt, hindi, graded, onFinish}
 let qTimerInt = null;
 
@@ -2523,19 +2467,19 @@ function renderQRunner(){
   }, 1000);
 }
 
-/* placeholder question generator — used until Supabase has real rows for a filter */
+/* sample question generator — used until real questions have been added for a filter */
 function placeholderMCQs(n, topic){
   return Array.from({length:n}, (_,i)=>({
-    question_en:`[Sample] ${topic} — question ${i+1}. Replace with real content from Supabase (table: csat_questions / prelims_pyqs).`,
-    question_hi:`[नमूना] ${topic} — प्रश्न ${i+1}। इसे Supabase से वास्तविक सामग्री से बदलें।`,
+    question_en:`[Sample] ${topic} — question ${i+1}. Add your own questions to replace this.`,
+    question_hi:`[नमूना] ${topic} — प्रश्न ${i+1}। इसे अपने प्रश्नों से बदलें।`,
     options:['Option A','Option B','Option C','Option D'],
     correct_index:0
   }));
 }
 function placeholderSubjective(n, label){
   return Array.from({length:n}, (_,i)=>({
-    question:`[Sample] ${label} — question ${i+1}. Replace with the real question text from Supabase (table: mains_pyqs).`,
-    solution:`[Sample solution] Upload the model answer for this question to the mains_pyqs table's "solution" column.`
+    question:`[Sample] ${label} — question ${i+1}. Add the real question text to replace this.`,
+    solution:`[Sample solution] Add the model answer for this question here.`
   }));
 }
 
@@ -2548,11 +2492,29 @@ const CSAT_PRACTICE_SETS = 5;
 const CSAT_LEVELS = 5;
 let csatNav = {view:'section'};
 
+/* Local PYQ bank for CSAT — questions you add here are kept in this
+   browser (localStorage) so you can build up real content before a
+   backend is wired up. Keyed by section|topic|practice set|level. */
+function csatBankKey(section, topic, practiceSet, level){
+  return `${section}|||${topic}|||${practiceSet}|||${level}`;
+}
+let csatQuestionBank = {};
+(function loadCsatBank(){
+  try{
+    const raw = localStorage.getItem('gb3_csat_bank');
+    csatQuestionBank = raw ? JSON.parse(raw) : {};
+  }catch(e){ csatQuestionBank = {}; }
+})();
+function saveCsatBank(){
+  try{ localStorage.setItem('gb3_csat_bank', JSON.stringify(csatQuestionBank)); }catch(e){}
+}
+
 function csatCrumbSteps(){
   const c = [{label:'CSAT', go:()=>{ csatNav={view:'section'}; renderCsatDrill(); }}];
   if(csatNav.section) c.push({label:csatNav.section, go:()=>{ csatNav={view:'topic', section:csatNav.section}; renderCsatDrill(); }});
   if(csatNav.topic) c.push({label:csatNav.topic, go:()=>{ csatNav={view:'practiceset', section:csatNav.section, topic:csatNav.topic}; renderCsatDrill(); }});
   if(csatNav.practiceSet) c.push({label:`Set ${csatNav.practiceSet}`, go:()=>{ csatNav={view:'level', section:csatNav.section, topic:csatNav.topic, practiceSet:csatNav.practiceSet}; renderCsatDrill(); }});
+  if(csatNav.level) c.push({label:`Level ${csatNav.level}`, go:()=>{ csatNav={view:'levelhome', section:csatNav.section, topic:csatNav.topic, practiceSet:csatNav.practiceSet, level:csatNav.level}; renderCsatDrill(); }});
   return c;
 }
 function csatCrumb(){
@@ -2595,23 +2557,117 @@ async function renderCsatDrill(){
   }
 
   if(csatNav.view==='level'){
-    root.innerHTML = csatCrumb() + `<div class="drill-grid">${Array.from({length:CSAT_LEVELS}, (_,i)=>i+1).map(n=>`
-      <button class="drill-card" data-n="${n}"><h5>Level ${n}</h5><span class="dsub">Attempt questions</span></button>`).join('')}</div>`;
+    root.innerHTML = csatCrumb() + `<div class="drill-grid">${Array.from({length:CSAT_LEVELS}, (_,i)=>i+1).map(n=>{
+      const bank = csatQuestionBank[csatBankKey(csatNav.section, csatNav.topic, csatNav.practiceSet, n)] || [];
+      return `<button class="drill-card" data-n="${n}"><h5>Level ${n}</h5><span class="dsub">${bank.length ? bank.length+' question(s) added' : 'Sample questions for now'}</span></button>`;
+    }).join('')}</div>`;
     wireCrumb(root, csatCrumbSteps());
-    root.querySelectorAll('.drill-card').forEach(el=> el.onclick = async ()=>{
-      const level = Number(el.dataset.n);
-      const section = csatNav.section, topic = csatNav.topic, practiceSet = csatNav.practiceSet;
-      // Backend: fetch from Supabase `csat_questions`, filtered to this exact
-      // section / topic / practice set / level combination.
-      const rows = await fetchFromSupabase('csat_questions', {section, topic, practice_no:practiceSet, level});
-      const items = (rows && rows.length) ? rows : placeholderMCQs(5, `${topic} · Set ${practiceSet} · Level ${level}`);
+    root.querySelectorAll('.drill-card').forEach(el=> el.onclick = ()=>{
+      csatNav = {view:'levelhome', section:csatNav.section, topic:csatNav.topic, practiceSet:csatNav.practiceSet, level:Number(el.dataset.n)};
+      renderCsatDrill();
+    });
+    return;
+  }
+
+  if(csatNav.view==='levelhome'){
+    const {section, topic, practiceSet, level} = csatNav;
+    const key = csatBankKey(section, topic, practiceSet, level);
+    const bank = csatQuestionBank[key] || [];
+
+    root.innerHTML = csatCrumb() + `
+      <div class="drill-card" style="margin-bottom:16px;">
+        <h5>${topic} — Set ${practiceSet} · Level ${level}</h5>
+        <span class="dsub">${bank.length ? bank.length+' question(s) added' : 'No questions added yet — sample questions will be used'}</span>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px;">
+        <button class="modal-submit" id="csatStartBtn" style="flex:1; min-width:160px; margin-top:0;">Start practice</button>
+        <button class="modal-back" id="csatAddPyqToggleBtn" style="flex:1; min-width:160px; margin-top:0;">${svg('paper','style="width:14px;height:14px;display:inline;vertical-align:-2px;margin-right:4px;"')}Add PYQ</button>
+      </div>
+      <div class="ca-panel" id="csatAddPyqForm">
+        <div class="field"><label>Question (English)</label><input type="text" id="csatQEn" placeholder="e.g. What is 15% of 240?"></div>
+        <div class="field"><label>Question (Hindi — optional)</label><input type="text" id="csatQHi" placeholder="वैकल्पिक"></div>
+        <div class="field"><label>Option A</label><input type="text" id="csatOptA"></div>
+        <div class="field"><label>Option B</label><input type="text" id="csatOptB"></div>
+        <div class="field"><label>Option C</label><input type="text" id="csatOptC"></div>
+        <div class="field"><label>Option D</label><input type="text" id="csatOptD"></div>
+        <div class="field">
+          <label>Correct option</label>
+          <div class="priority-picker">
+            <button class="pchip sel" type="button" data-i="0">A</button>
+            <button class="pchip" type="button" data-i="1">B</button>
+            <button class="pchip" type="button" data-i="2">C</button>
+            <button class="pchip" type="button" data-i="3">D</button>
+          </div>
+        </div>
+        <button class="modal-submit" id="csatAddPyqSave">Save question to this level</button>
+      </div>
+      <div id="csatBankList"></div>
+    `;
+    wireCrumb(root, csatCrumbSteps());
+
+    let csatCorrectIdx = 0;
+    root.querySelectorAll('.priority-picker .pchip').forEach(btn=>{
+      btn.onclick = ()=>{
+        root.querySelectorAll('.priority-picker .pchip').forEach(b=>b.classList.remove('sel'));
+        btn.classList.add('sel');
+        csatCorrectIdx = Number(btn.dataset.i);
+      };
+    });
+
+    const renderBankList = ()=>{
+      const listEl = document.getElementById('csatBankList');
+      if(!listEl) return;
+      const items = csatQuestionBank[key] || [];
+      listEl.innerHTML = items.length ? items.map((q,i)=>`
+        <div class="test-card">
+          <div class="test-card-head">
+            <h5>${q.question_en}</h5>
+            <button class="trash-btn" data-i="${i}" aria-label="Delete question">${svg('trash')}</button>
+          </div>
+          <div class="subject-chips">${q.options.map((o,oi)=>`<span class="subj-chip${oi===q.correct_index?' high':''}">${String.fromCharCode(65+oi)}. ${o}</span>`).join('')}</div>
+        </div>`).join('') : '';
+      listEl.querySelectorAll('.trash-btn').forEach(btn=>{
+        btn.onclick = ()=>{
+          csatQuestionBank[key].splice(Number(btn.dataset.i), 1);
+          saveCsatBank();
+          renderBankList();
+        };
+      });
+    };
+    renderBankList();
+
+    document.getElementById('csatAddPyqToggleBtn').onclick = ()=>{
+      document.getElementById('csatAddPyqForm').classList.toggle('show');
+    };
+    document.getElementById('csatAddPyqSave').onclick = ()=>{
+      const qEn = document.getElementById('csatQEn').value.trim();
+      const qHi = document.getElementById('csatQHi').value.trim();
+      const opts = ['csatOptA','csatOptB','csatOptC','csatOptD'].map(id=> document.getElementById(id).value.trim());
+      if(!qEn || opts.some(o=>!o)){ flashToast('Fill in the question and all four options.'); return; }
+      if(!csatQuestionBank[key]) csatQuestionBank[key] = [];
+      csatQuestionBank[key].push({
+        question_en: qEn,
+        question_hi: qHi || undefined,
+        options: opts,
+        correct_index: csatCorrectIdx
+      });
+      saveCsatBank();
+      document.getElementById('csatQEn').value='';
+      document.getElementById('csatQHi').value='';
+      ['csatOptA','csatOptB','csatOptC','csatOptD'].forEach(id=> document.getElementById(id).value='');
+      flashToast('Question added.');
+      renderCsatDrill();
+    };
+
+    document.getElementById('csatStartBtn').onclick = ()=>{
+      const items = bank.length ? bank : placeholderMCQs(5, `${topic} · Set ${practiceSet} · Level ${level}`);
       root.innerHTML = `<div id="qRunnerRoot"></div>`;
       startQRunner(items, {
         title:`${topic} — Set ${practiceSet} · Level ${level}`,
         graded:true,
-        onExit:()=>{ csatNav={view:'level', section, topic, practiceSet}; renderCsatDrill(); }
+        onExit:()=>{ csatNav={view:'levelhome', section, topic, practiceSet, level}; renderCsatDrill(); }
       });
-    });
+    };
     return;
   }
 }
@@ -2651,10 +2707,9 @@ async function renderPreDrill(){
         <button class="drill-card" data-y="${y}"><h5>${y}</h5><span class="dsub">Attempt full paper</span></button>`).join('')}</div>
     `;
     root.querySelectorAll('.drill-card[data-s]').forEach(el=> el.onclick = ()=>{ preNav={view:'subtopic', subject:el.dataset.s}; renderPreDrill(); });
-    root.querySelectorAll('.drill-card[data-y]').forEach(el=> el.onclick = async ()=>{
+    root.querySelectorAll('.drill-card[data-y]').forEach(el=> el.onclick = ()=>{
       const year = Number(el.dataset.y);
-      const rows = await fetchFromSupabase('prelims_pyqs', {year});
-      const items = (rows && rows.length) ? rows : placeholderMCQs(5, `Prelims ${year}`);
+      const items = placeholderMCQs(5, `Prelims ${year}`);
       root.innerHTML = `<div id="qRunnerRoot"></div>`;
       startQRunner(items, {title:`Prelims ${year}`, graded:true, onExit:()=>{ preNav={view:'home'}; renderPreDrill(); }});
     });
@@ -2666,10 +2721,9 @@ async function renderPreDrill(){
       <button class="drill-card" data-t="${t}"><h5>${t}</h5><span class="dsub">Attempt questions</span></button>`).join('')}</div>`;
     wireCrumb(root, [{go:()=>{ preNav={view:'home'}; renderPreDrill(); }}]);
     
-    root.querySelectorAll('.drill-card').forEach(el=> el.onclick = async ()=>{
+    root.querySelectorAll('.drill-card').forEach(el=> el.onclick = ()=>{
       const subtopic = el.dataset.t;
-      const rows = await fetchFromSupabase('prelims_pyqs', {subject:preNav.subject, subtopic}); 
-      const items = (rows && rows.length) ? rows : placeholderMCQs(5, `${preNav.subject} · ${subtopic}`);
+      const items = placeholderMCQs(5, `${preNav.subject} · ${subtopic}`);
       root.innerHTML = `<div id="qRunnerRoot"></div>`;
       startQRunner(items, {title:`${subtopic}`, graded:true, onExit:()=>{ preNav={view:'subtopic', subject:preNav.subject}; renderPreDrill(); }});
     });
@@ -2712,10 +2766,9 @@ async function renderMainsDrill(){
       <button class="drill-card" data-t="${t}"><h5>${t}</h5><span class="dsub">Questions & solutions</span></button>`).join('')}</div>`;
     wireCrumb(root, [{go:()=>{ mainsNav={view:'home'}; renderMainsDrill(); }}]);
     
-    root.querySelectorAll('.drill-card').forEach(el=> el.onclick = async ()=>{
+    root.querySelectorAll('.drill-card').forEach(el=> el.onclick = ()=>{
       const topic = el.dataset.t;
-      const rows = await fetchFromSupabase('mains_pyqs', {paper:mainsNav.paper, topic}); 
-      const items = (rows && rows.length) ? rows : placeholderSubjective(4, `${mainsNav.paper} · ${topic}`);
+      const items = placeholderSubjective(4, `${mainsNav.paper} · ${topic}`);
       root.innerHTML = `<div id="qRunnerRoot"></div>`;
       startQRunner(items, {title:`${mainsNav.paper} — ${topic}`, graded:false, onExit:()=>{ mainsNav={view:'topic', paper:mainsNav.paper}; renderMainsDrill(); }});
     });
@@ -2727,10 +2780,9 @@ async function renderMainsDrill(){
       <button class="drill-card" data-p="${p}"><h5>${p}</h5><span class="dsub">Questions & solutions</span></button>`).join('')}</div>`;
     wireCrumb(root, [{go:()=>{ mainsNav={view:'home'}; renderMainsDrill(); }}]);
     
-    root.querySelectorAll('.drill-card').forEach(el=> el.onclick = async ()=>{
+    root.querySelectorAll('.drill-card').forEach(el=> el.onclick = ()=>{
       const paper = el.dataset.p;
-      const rows = await fetchFromSupabase('mains_pyqs', {paper, year:mainsNav.year}); 
-      const items = (rows && rows.length) ? rows : placeholderSubjective(4, `${paper} · ${mainsNav.year}`);
+      const items = placeholderSubjective(4, `${paper} · ${mainsNav.year}`);
       root.innerHTML = `<div id="qRunnerRoot"></div>`;
       startQRunner(items, {title:`${paper} — ${mainsNav.year}`, graded:false, onExit:()=>{ mainsNav={view:'year_paper', year:mainsNav.year}; renderMainsDrill(); }});
     });
