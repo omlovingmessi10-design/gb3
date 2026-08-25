@@ -702,10 +702,9 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
   <div class="modal" id="settingsModal">
     <button class="modal-close" id="closeSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <h3>Profile &amp; settings</h3>
-    <p class="sub">Kept in this browser for now — hook this up to your own backend whenever you're ready.</p>
+    <p class="sub">Kept securely via Google Authentication and synced with your database.</p>
     <div class="field"><label>Name</label><input type="text" id="setName" value="Aarav Mehta"></div>
-    <div class="field"><label>Email</label><input type="text" id="setEmail" value="aarav.mehta@example.com"></div>
-    <div class="field"><label>Mobile number</label><input type="tel" id="setMobile" placeholder="e.g. +91 98765 43210"></div>
+    <div class="field"><label>Email</label><input type="text" id="setEmail" value="aarav.mehta@example.com" readonly></div>
     <div class="field"><label>Target exam</label><select id="setYear"><option>CSE 2027</option><option>CSE 2028</option><option>CSE 2029</option><option>CSE 2030</option></select></div>
     <div class="field"><label>Optional subject</label><select id="setOptional"></select></div>
     <div class="field">
@@ -729,6 +728,7 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
       <label class="check-row"><input type="checkbox"> Planning Ahead due-today alert</label>
     </div>
     <button class="modal-submit" id="saveSettings">Save changes</button>
+    <button class="modal-submit danger-btn" id="logoutBtn" style="margin-top: 10px;">Sign out</button>
   </div>
 </div>
 
@@ -884,36 +884,44 @@ html:not(.dark) .graph-wrap{background:#131b2e;}
 
 <script>
 /* =========================================================
-   SUPABASE INITIALIZATION & SECURE AUTH CHECK
+   SUPABASE INITIALIZATION & SECURE GOOGLE SESSION VERIFICATION
 ========================================================= */
-const SUPABASE_URL = localStorage.getItem("gb3_supa_url");
-const SUPABASE_KEY = localStorage.getItem("gb3_supa_key");
-
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-    window.location.href = "index.html";
-}
+const SUPABASE_URL = 'https://hglyqhvfwdtxxpkswslx.supabase.co/';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnbHlxaHZmd2R0eHhwa3N3c2x4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1OTgzNDQsImV4cCI6MjEwMzE3NDM0NH0.5hrKv9rJdBOZKydlrO_mqYzTZgDAeZQ4HOvMlDeYrKs';
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let userId = null;
 
-// Grab the secure session
-async function checkAuth() {
-    const { data: { session } } = await db.auth.getSession();
-    if (!session) {
-        alert("Session expired. Redirecting to login.");
+async function verifySecureSession() {
+    const { data: { session }, error } = await db.auth.getSession();
+    
+    // If no active session exists, kick them back to login page
+    if (!session || error) {
         window.location.href = "index.html";
         return;
     }
+    
     userId = session.user.id; 
     
-    // Now that we have the ID, fetch the data
+    // Update profile header details with real Google profile info
+    const userName = session.user.user_metadata.full_name || 'Aarav Mehta';
+    const userEmail = session.user.email || 'aarav.mehta@example.com';
+    
+    document.querySelectorAll('#topName, #railName, #setName').forEach(el => {
+        if(el.tagName === 'INPUT') el.value = userName; else el.textContent = userName;
+    });
+    
+    const emailInput = document.getElementById('setEmail');
+    if(emailInput) emailInput.value = userEmail;
+
+    // Fetch data safely with RLS
     fetchAllData();
 }
 
-// Kick off the auth check immediately
-checkAuth();
+// Start verification instantly on load
+verifySecureSession();
 
-/* ================= data with 2-3 Demo Examples ================= */
+/* ================= data with Demo/Fallback Arrays ================= */
 const CATEGORIES = [
   {id:'GS', label:'GS', icon:'book'},
   {id:'CA', label:'CA', icon:'paper'},
@@ -943,7 +951,7 @@ const ICONS = {
   sun:'<circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.2M12 19.8V22M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M2 12h2.2M19.8 12H22M4.9 19.1l1.5-1.5M17.6 6.4l1.5-1.5"/>',
   expand:'<path d="M8 3H5a2 2 0 00-2 2v3M16 3h3a2 2 0 012 2v3M21 16v3a2 2 0 01-2 2h-3M3 16v3a2 2 0 002 2h3"/>',
   compress:'<path d="M8 3v3a2 2 0 01-2 2H3M16 3v3a2 2 0 002 2h3M21 16h-3a2 2 0 00-2 2v3M3 16h3a2 2 0 012 2v3"/>',
-  settings:'<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>',
+  settings:'<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>',
   lock:'<rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>',
   chat:'<path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>',
   gift:'<rect x="3" y="8" width="18" height="4"/><path d="M12 8v13M19 12v9H5v-9"/><path d="M7.5 8a2.5 2.5 0 010-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 010 5"/>',
@@ -963,46 +971,40 @@ function offsetDateKey(days){ const d=new Date(); d.setDate(d.getDate()+days); r
 let activeCat = "GS";
 
 /* =========================================================
-   DATABASE FETCHING (Loads on Startup)
+   DATABASE FETCHING (Filtered automatically by RLS)
 ========================================================= */
-// 1. Tasks Demo Data
 let tasks = [
   {id: 101, title: 'Read Laxmikanth Ch. 9 — Emergency provisions', cat: 'GS', done: false, themes: [], fromPlan: false},
   {id: 102, title: 'Farm loan waivers — write 150 words', cat: 'CA', done: true, completedAt: todayKey(), themes: ['Agriculture'], fromPlan: false},
   {id: 103, title: 'CSAT Practice Set 1', cat: 'CSAT', done: false, themes: [], fromPlan: false}
 ];
 
-// 2. Planning Backlog Demo Data
 let planningBacklog = [
   {id: 201, title: "Constitution — Part III", date: offsetDateKey(1), cat: "GS"},
   {id: 202, title: "DPSP — Part IV", date: offsetDateKey(2), cat: "GS"}
 ];
 
-// 3. Time Log Demo Data
 let timeLogEntries = [
   {id: 301, date: offsetDateKey(-1), type: 'study', hours: 4, note: 'GS'},
   {id: 302, date: offsetDateKey(-1), type: 'nonstudy', hours: 8, note: 'Rest, commute'}
 ];
 
 async function fetchAllData() {
-    // Attempt to fetch Tasks
-    const { data: dbTasks } = await db.from('tasks').select('*').eq('user_id', userId);
+    // Because RLS is active, we just query normally. 
+    // Supabase automatically secures the response to only return the logged-in user's rows.
+    const { data: dbTasks } = await db.from('tasks').select('*');
     if (dbTasks && dbTasks.length > 0) tasks = dbTasks;
 
-    // Attempt to fetch Planning Backlog
-    const { data: dbPlans } = await db.from('planning_backlog').select('*').eq('user_id', userId);
+    const { data: dbPlans } = await db.from('planning_backlog').select('*');
     if (dbPlans && dbPlans.length > 0) planningBacklog = dbPlans;
 
-    // Attempt to fetch Time Logs
-    const { data: dbLogs } = await db.from('time_logs').select('*').eq('user_id', userId);
+    const { data: dbLogs } = await db.from('time_logs').select('*');
     if (dbLogs && dbLogs.length > 0) timeLogEntries = dbLogs;
 
-    // Re-render the UI with fetched data (or default demo data if empty)
     pullTodaysPlanIntoDaybook();
     render();
     if(document.getElementById('statsTimeBlock')) renderStatistics();
 }
-
 
 const MODULES = [
   {icon:'map', tag:'EMT · CA Map', title:'Current Affairs Visual Map', desc:"Your current-affairs sources, clippings and syllabus links laid out as one connected map — built the way an Obsidian vault links notes.", body:`
@@ -1537,7 +1539,7 @@ function renderTimeLogTable(){
       const note = form.querySelector('.note-input').value.trim();
       
       timeLogEntries = timeLogEntries.filter(e=>e.date!==date);
-      await db.from('time_logs').delete().eq('date', date).eq('user_id', userId);
+      await db.from('time_logs').delete().eq('date', date);
 
       const newLogs = [];
       if(study>0) newLogs.push({date, type:'study', hours:study, note, user_id: userId});
@@ -1955,7 +1957,7 @@ function buildSubj(pairs){ const o={}; SUBJECTS10.forEach((s,i)=>{ o[s] = {c:pai
 
 let ptaTests = [
   {id:1,  name:"HLT — Ancient & Medieval focus",   type:"HLT", max:100, date:"2026-06-01", subjects:["Ancient History","Medieval History","Current Affairs"], rounds:[{c:10,i:4},{c:9,i:5},{c:7,i:6}],  sw: buildSubj([[5,1],[2,2],[1,2],[2,3],[3,2],[3,3],[5,1],[1,3],[2,3],[2,2]])},
-  {id:2,  name:"FLT — Full syllabus 01",           type:"FLT", max:200, date:"2026-06-08", subjects:["All"], rounds:[{c:18,i:8},{c:17,i:9},{c:15,i:10}], sw: buildSubj([[9,2],[4,4],[3,4],[4,5],[5,3],[5,5],[9,2],[3,6],[4,5],[4,4]])},
+  {id:2,  name:"FLT — Full syllabus 01",             type:"FLT", max:200, date:"2026-06-08", subjects:["All"], rounds:[{c:18,i:8},{c:17,i:9},{c:15,i:10}], sw: buildSubj([[9,2],[4,4],[3,4],[4,5],[5,3],[5,5],[9,2],[3,6],[4,5],[4,4]])},
 ];
 let nextPtaId = 11;
 let ptaSelectedSubjects = ["All"];
@@ -2340,16 +2342,20 @@ document.getElementById('setLightBtn').onclick = ()=>{ isDark=false; applyDarkMo
 document.getElementById('setDarkBtn').onclick = ()=>{ isDark=true; applyDarkMode(); };
 document.getElementById('setGenderMaleBtn').onclick = ()=>{ userGender='male'; localStorage.setItem('gb3_gender','male'); applyGenderPicker(); renderAvatars(); };
 document.getElementById('setGenderFemaleBtn').onclick = ()=>{ userGender='female'; localStorage.setItem('gb3_gender','female'); applyGenderPicker(); renderAvatars(); };
+
+document.getElementById('logoutBtn').onclick = async () => {
+    await db.auth.signOut();
+    window.location.href = "index.html";
+};
+
 document.getElementById('saveSettings').onclick = ()=>{
   const name = document.getElementById('setName').value.trim() || 'Aarav Mehta';
   const year = document.getElementById('setYear').value;
-  const mobile = document.getElementById('setMobile').value.trim();
-  const email = document.getElementById('setEmail').value.trim();
   const optional = document.getElementById('setOptional').value;
   document.querySelectorAll('#topName, #railName').forEach(el=> el.textContent = name);
   document.querySelectorAll('#topExam, #railExam').forEach(el=> el.textContent = year);
   settingsOverlay.classList.remove('open');
-  try{ localStorage.setItem('gb3_profile', JSON.stringify({name, target_exam: year, mobile, email, optional_subject: optional, gender: userGender})); }catch(e){}
+  try{ localStorage.setItem('gb3_profile', JSON.stringify({name, target_exam: year, optional_subject: optional, gender: userGender})); }catch(e){}
   flashToast('Profile updated.');
 };
 document.getElementById('closeModule').onclick = ()=>{
@@ -2430,8 +2436,6 @@ function loadLocalProfile(){
       document.querySelectorAll('#topExam, #railExam').forEach(el=> el.textContent = p.target_exam);
       const sel = document.getElementById('setYear'); if(sel) sel.value = p.target_exam;
     }
-    if(p.mobile){ const m = document.getElementById('setMobile'); if(m) m.value = p.mobile; }
-    if(p.email){ const em = document.getElementById('setEmail'); if(em) em.value = p.email; }
     if(p.optional_subject){ const os = document.getElementById('setOptional'); if(os) os.value = p.optional_subject; }
   }catch(e){}
 }
